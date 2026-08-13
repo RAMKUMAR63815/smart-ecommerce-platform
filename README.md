@@ -1,12 +1,12 @@
 # Smart E-Commerce Platform
 
-A full-stack Smart E-Commerce Platform developed as part of a backend/full-stack development assignment. The system provides user authentication, JWT-based authorization, social login integration, role-based access control, product management, cart management, order processing, payments, dashboard analytics, and API testing using Postman.
+A full-stack **Smart E-Commerce Platform** developed as part of a backend/full-stack development assignment. The application provides secure user authentication, JWT-based authorization, Auth0 social login, role-based access control, product management, cart management, order processing, payment handling, dashboard and analytics APIs, and API testing using Postman.
 
 ---
 
 ## 1. Project Overview
 
-The Smart E-Commerce Platform is designed with a modular architecture that separates backend services, administration, frontend functionality, and API testing.
+The Smart E-Commerce Platform follows a modular architecture that separates backend services, administration, frontend functionality, database operations, authentication, and API testing.
 
 ### Main Features
 
@@ -14,7 +14,7 @@ The Smart E-Commerce Platform is designed with a modular architecture that separ
 * Secure password hashing
 * JWT access token authentication
 * JWT refresh token authentication
-* User profile authentication
+* Current user authentication
 * Auth0 social login integration
 * Role-Based Access Control (RBAC)
 * Admin, Staff, and Customer roles
@@ -26,22 +26,23 @@ The Smart E-Commerce Platform is designed with a modular architecture that separ
 * Analytics APIs
 * Swagger/OpenAPI documentation
 * Postman API collection
+* MySQL database integration
 
 ---
 
-## 2. Technology Stack
+# 2. Technology Stack
 
-### Backend
+## Backend
 
 * Python
 * FastAPI
 * SQLAlchemy
 * Pydantic
-* JWT
 * Python-Jose
+* JWT
 * MySQL
 
-### Authentication
+## Authentication
 
 * JWT Access Token
 * JWT Refresh Token
@@ -50,24 +51,21 @@ The Smart E-Commerce Platform is designed with a modular architecture that separ
 * Google Login
 * Facebook Login
 
-### API Testing
+## API Testing
 
 * Swagger UI
 * Postman
 
-### Database
-
-* MySQL
-
-### Additional Technologies
+## Additional Technologies
 
 * Django
 * React / Next.js
 * Git
+* GitHub
 
 ---
 
-## 3. Project Architecture
+# 3. Project Architecture
 
 ```text
 smart_ecommerce/
@@ -83,84 +81,88 @@ smart_ecommerce/
 │   │   └── main.py
 │   │
 │   ├── requirements.txt
-│   └── .env
+│   └── ...
 │
 ├── django_admin/
 │
 ├── frontend/
 │
-├── Postman/
-│   ├── Smart_Ecommerce_Postman_Collection.json
-│   └── Smart_Ecommerce_Environment.json
+├── postman/
+│   ├── collections/
+│   │   └── Smart E-Commerce Platform/
+│   ├── environments/
+│   └── globals/
 │
+├── .env.example
+├── .gitignore
 └── README.md
 ```
 
-> Folder names may vary depending on the final project structure.
+> The exact folder structure may vary depending on the final project configuration.
 
 ---
 
 # 4. Database Design
 
-The application uses MySQL as the primary database.
+The application uses **MySQL** as the primary database.
 
 ## User
 
 Stores registered users and their roles.
 
-| Field      | Description              |
-| ---------- | ------------------------ |
-| id         | Unique user ID           |
-| name       | User name                |
-| email      | Unique email address     |
-| password   | Hashed password          |
-| role       | admin / staff / customer |
-| created_at | Account creation date    |
+| Field        | Description              |
+| ------------ | ------------------------ |
+| `id`         | Unique user ID           |
+| `name`       | User name                |
+| `email`      | Unique email address     |
+| `password`   | Hashed password          |
+| `role`       | Admin / Staff / Customer |
+| `created_at` | Account creation date    |
 
 ## Product
 
 Stores product information.
 
-| Field       | Description         |
-| ----------- | ------------------- |
-| id          | Unique product ID   |
-| name        | Product name        |
-| description | Product description |
-| price       | Product price       |
-| stock       | Available stock     |
-| images      | Product image URL   |
+| Field         | Description               |
+| ------------- | ------------------------- |
+| `id`          | Unique product ID         |
+| `name`        | Product name              |
+| `description` | Product description       |
+| `price`       | Product price             |
+| `stock`       | Available stock           |
+| `images`      | Product image information |
 
 ## Cart
 
 Stores products added to a user's cart.
 
-| Field      | Description      |
-| ---------- | ---------------- |
-| id         | Cart item ID     |
-| user_id    | User ID          |
-| product_id | Product ID       |
-| quantity   | Product quantity |
+| Field        | Description      |
+| ------------ | ---------------- |
+| `id`         | Cart item ID     |
+| `user_id`    | User ID          |
+| `product_id` | Product ID       |
+| `quantity`   | Product quantity |
 
 ## Order
 
 Stores customer orders.
 
-| Field        | Description          |
-| ------------ | -------------------- |
-| id           | Order ID             |
-| user_id      | Customer ID          |
-| total_amount | Total order amount   |
-| status       | Order/payment status |
+| Field          | Description          |
+| -------------- | -------------------- |
+| `id`           | Order ID             |
+| `user_id`      | Customer ID          |
+| `total_amount` | Total order amount   |
+| `status`       | Order/payment status |
 
 ---
 
 # 5. Authentication System
 
-The authentication system is implemented using JWT.
+The authentication system uses **JWT-based authentication** with access and refresh tokens.
 
 ## Registration
 
-```text
+```http
 POST /auth/register
 ```
 
@@ -171,8 +173,8 @@ Example request:
 ```json
 {
   "name": "Postman User",
-  "email": "postmanuser@gmail.com",
-  "password": "Test@12345"
+  "email": "example@gmail.com",
+  "password": "your_password"
 }
 ```
 
@@ -180,7 +182,7 @@ Example request:
 
 ## Login
 
-```text
+```http
 POST /auth/login
 ```
 
@@ -190,36 +192,36 @@ Example request:
 
 ```json
 {
-  "email": "postmanuser@gmail.com",
-  "password": "Test@12345"
+  "email": "example@gmail.com",
+  "password": "your_password"
 }
 ```
 
-The response contains an access token and refresh token.
+The response provides authentication tokens used to access protected APIs.
 
 ---
 
 ## Refresh Token
 
-```text
+```http
 POST /auth/refresh
 ```
 
-Generates a new access token using the refresh token.
+Generates a new access token using a valid refresh token.
 
 ---
 
 ## Current User
 
-```text
+```http
 GET /auth/me
 ```
 
-Returns the currently authenticated user's information.
+Returns information about the currently authenticated user.
 
-Requires:
+Protected request:
 
-```text
+```http
 Authorization: Bearer <access_token>
 ```
 
@@ -227,14 +229,14 @@ Authorization: Bearer <access_token>
 
 # 6. Social Login
 
-Auth0 is integrated for social authentication.
+Auth0 is integrated to support social authentication.
 
-Supported providers:
+Supported providers include:
 
 * Google
 * Facebook
 
-Social login flow:
+### Social Login Flow
 
 ```text
 User
@@ -247,14 +249,14 @@ Token Verification
   ↓
 Create / Find User
   ↓
-Application JWT
+Application Authentication
   ↓
 Authenticated User
 ```
 
 Endpoint:
 
-```text
+```http
 POST /auth/social-login
 ```
 
@@ -262,34 +264,35 @@ POST /auth/social-login
 
 # 7. Role-Based Access Control
 
-The application implements three roles.
+The application implements three main roles.
 
-### Admin
+## Admin
 
 Administrators can:
 
 * Manage products
-* View users
-* View analytics
+* Manage users
 * Access administrative APIs
+* View dashboard information
+* Access analytics
 
-### Staff
+## Staff
 
-Staff users can access permitted operational functionality according to their assigned permissions.
+Staff users can access permitted operational functionality according to their assigned role and permissions.
 
-### Customer
+## Customer
 
 Customers can:
 
 * View products
 * Add products to cart
-* Update cart
+* Update cart items
 * Remove cart items
 * Create orders
-* Make/complete payments
+* Complete payment operations
 * View their orders
 
-Protected endpoints validate the JWT token and user role before allowing access.
+Protected endpoints validate the user's JWT and role before allowing access.
 
 ---
 
@@ -297,25 +300,25 @@ Protected endpoints validate the JWT token and user role before allowing access.
 
 ### Get Products
 
-```text
+```http
 GET /products/
 ```
 
 ### Create Product
 
-```text
+```http
 POST /products/
 ```
 
 ### Get Product
 
-```text
+```http
 GET /products/{product_id}
 ```
 
 ### Delete Product
 
-```text
+```http
 DELETE /products/{product_id}
 ```
 
@@ -325,27 +328,27 @@ Product creation and administrative operations are protected using role-based au
 
 # 9. Cart APIs
 
-### Add to Cart
+### Add Product to Cart
 
-```text
+```http
 POST /cart/add
 ```
 
 ### View Cart
 
-```text
+```http
 GET /cart/
 ```
 
 ### Update Cart
 
-```text
+```http
 PUT /cart/update/{cart_id}
 ```
 
-### Remove from Cart
+### Remove Cart Item
 
-```text
+```http
 DELETE /cart/remove/{cart_id}
 ```
 
@@ -355,25 +358,25 @@ DELETE /cart/remove/{cart_id}
 
 ### Create Order
 
-```text
+```http
 POST /orders/create
 ```
 
 ### Get Orders
 
-```text
+```http
 GET /orders/
 ```
 
-### Get Order
+### Get Individual Order
 
-```text
+```http
 GET /orders/{order_id}
 ```
 
 ### Payment Success
 
-```text
+```http
 PUT /orders/{order_id}/pay
 ```
 
@@ -381,27 +384,27 @@ PUT /orders/{order_id}/pay
 
 # 11. Payment APIs
 
-### Get Payment Order
+### Get Payment Information
 
-```text
+```http
 GET /payment/{order_id}
 ```
 
 ### Complete Payment
 
-```text
+```http
 POST /payment/{order_id}/pay
 ```
 
-The payment functionality updates the corresponding order/payment status.
+Payment operations update the corresponding order/payment status.
 
 ---
 
 # 12. Dashboard and Analytics
 
-### Dashboard
+## Dashboard
 
-```text
+```http
 GET /dashboard/
 ```
 
@@ -412,33 +415,33 @@ Provides high-level application statistics such as:
 * Total cart items
 * Total orders
 
-### Analytics
+## Analytics
 
-```text
+```http
 GET /analytics/
 ```
 
 Provides application analytics.
 
-### Admin Users
+## Admin Users
 
-```text
+```http
 GET /admin/users
 ```
 
-### Admin Analytics
+## Admin Analytics
 
-```text
+```http
 GET /admin/analytics
 ```
 
-Administrative endpoints are protected using role-based authorization.
+Administrative APIs are protected using role-based authorization.
 
 ---
 
 # 13. API Documentation
 
-FastAPI automatically provides Swagger UI.
+FastAPI automatically provides Swagger/OpenAPI documentation.
 
 After starting the backend, open:
 
@@ -452,7 +455,7 @@ OpenAPI specification:
 http://127.0.0.1:8000/openapi.json
 ```
 
-Swagger can be used to test the APIs directly from the browser.
+Swagger UI can be used to interactively test the API endpoints.
 
 ---
 
@@ -466,7 +469,7 @@ cd fastapi_backend
 
 ## Step 2 — Activate Virtual Environment
 
-Windows PowerShell:
+For Windows PowerShell:
 
 ```powershell
 .\venv\Scripts\Activate.ps1
@@ -482,7 +485,7 @@ pip install -r requirements.txt
 
 ## Step 4 — Configure Environment Variables
 
-Create a `.env` file in the backend directory.
+Create a local `.env` file in the backend directory.
 
 Example:
 
@@ -498,7 +501,9 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-> Never commit real passwords, secret keys, Auth0 secrets, or other credentials to Git.
+If Auth0 is configured, add the required Auth0 configuration values to the local environment.
+
+> **Important:** Never commit real passwords, database credentials, secret keys, Auth0 secrets, or other sensitive credentials to GitHub.
 
 ## Step 5 — Start FastAPI
 
@@ -506,7 +511,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 uvicorn app.main:app --reload
 ```
 
-The API will be available at:
+The API will normally be available at:
 
 ```text
 http://127.0.0.1:8000
@@ -524,19 +529,16 @@ http://127.0.0.1:8000/docs
 
 A Postman collection has been created for testing the application's APIs.
 
-### Authentication requests included
+The Postman files are stored under:
 
 ```text
-POST /auth/register
-POST /auth/login
-POST /auth/refresh
-GET  /auth/me
-POST /auth/social-login
+postman/
 ```
 
-### Other API groups
+The collection includes API requests for:
 
 ```text
+Authentication
 Products
 Cart
 Orders
@@ -546,39 +548,49 @@ Analytics
 Admin
 ```
 
+### Authentication Requests
+
+```http
+POST /auth/register
+POST /auth/login
+POST /auth/refresh
+GET  /auth/me
+POST /auth/social-login
+```
+
 The Postman environment uses:
 
 ```text
 baseUrl = http://127.0.0.1:8000
 ```
 
-The collection can be imported into Postman for API testing.
+The collection can be opened in Postman and used to test the backend APIs.
 
 ---
 
 # 16. Authentication Testing Flow
 
-Recommended testing sequence:
+Recommended authentication testing sequence:
 
 ```text
 1. Register
       ↓
 2. Login
       ↓
-3. Copy access_token
+3. Receive access token
       ↓
 4. Call /auth/me
       ↓
-5. Copy refresh_token
+5. Use refresh token
       ↓
 6. Call /auth/refresh
       ↓
 7. Test protected APIs
 ```
 
-For protected APIs, use:
+For protected APIs:
 
-```text
+```http
 Authorization: Bearer <access_token>
 ```
 
@@ -594,10 +606,12 @@ The application implements several security mechanisms:
 * Refresh token support
 * Protected API routes
 * Role-based authorization
-* Auth0 token verification
+* Auth0 authentication
 * Environment-based configuration
 
-Sensitive configuration should be stored in environment variables rather than source code.
+Sensitive configuration is kept outside the source code.
+
+The real `.env` file should remain local and should not be uploaded to GitHub.
 
 ---
 
@@ -605,34 +619,35 @@ Sensitive configuration should be stored in environment variables rather than so
 
 The APIs can be tested using:
 
-### Swagger UI
+## Swagger UI
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-### Postman
+## Postman
 
-The provided Postman collection contains requests for the authentication and application APIs.
+The Postman collection contains requests for the application's major API modules.
 
-Testing covers:
+Testing includes:
 
 * User registration
 * User login
-* Token generation
-* Token refresh
+* JWT token generation
+* JWT token refresh
 * Current user authentication
 * Social login
 * Product operations
 * Cart operations
 * Order operations
 * Payment operations
-* Admin authorization
-* Analytics
+* Role-based authorization
+* Dashboard APIs
+* Analytics APIs
 
 ---
 
-# 19. Example Authentication Flow
+# 19. Authentication Flow
 
 ```text
                  ┌──────────────────┐
@@ -651,7 +666,7 @@ Testing covers:
                           │
                           ▼
                  ┌──────────────────┐
-                 │    JWT Token     │
+                 │    JWT Tokens    │
                  └────────┬─────────┘
                           │
                           ▼
@@ -664,8 +679,8 @@ Testing covers:
               Customer           Admin
                   │                │
                   ▼                ▼
-               Orders          Products/
-               Cart            Analytics
+              Cart/Orders     Products/
+                              Analytics
 ```
 
 ---
@@ -674,21 +689,28 @@ Testing covers:
 
 The completed assignment includes:
 
-* FastAPI authentication implementation
-* Database models
+* FastAPI backend
+* MySQL database integration
+* User registration and login
 * JWT access token authentication
 * JWT refresh token authentication
+* Current user authentication
 * Auth0 social login integration
 * Role-Based Access Control
+* Admin, Staff, and Customer roles
 * Product APIs
 * Cart APIs
 * Order APIs
 * Payment APIs
-* Dashboard and analytics APIs
+* Dashboard APIs
+* Analytics APIs
 * Swagger/OpenAPI documentation
-* Postman collection
+* Postman API collection
 * Postman environment
-* Project source code
+* `.gitignore`
+* `.env.example`
+* Project documentation
+* GitHub repository
 
 ---
 
@@ -696,33 +718,42 @@ The completed assignment includes:
 
 Possible future improvements include:
 
-* Razorpay/Stripe payment gateway integration
+* Razorpay or Stripe payment gateway integration
 * Product image upload using cloud storage
-* Order item table
 * Product categories
 * Product search and filtering
 * Pagination
 * Email notifications
 * Docker deployment
 * CI/CD pipeline
-* Production database configuration
 * Automated API testing
+* Production database configuration
 * Frontend integration
-* Deployment to cloud infrastructure
+* Cloud deployment
 
 ---
 
-# 22. Author
+# 22. GitHub Repository
+
+The project source code and documentation are available on GitHub:
+
+**Smart E-Commerce Platform**
+
+https://github.com/RAMKUMAR63815/smart-ecommerce-platform
+
+---
+
+# 23. Author
 
 **Ram Kumar**
 
 Smart E-Commerce Platform
-Python / FastAPI / MySQL / JWT / Auth0
+Python | FastAPI | SQLAlchemy | MySQL | JWT | Auth0 | Postman | GitHub
 
 ---
 
-## Conclusion
+# Conclusion
 
-The Smart E-Commerce Platform demonstrates a production-oriented backend architecture with authentication, authorization, database management, product management, cart and order processing, payment handling, social login, analytics, and API testing.
+The Smart E-Commerce Platform demonstrates a modular and secure e-commerce backend architecture with authentication, authorization, database management, product management, cart and order processing, payment handling, social login, analytics, API documentation, and Postman-based API testing.
 
-The project is designed to provide a secure and scalable foundation for a complete full-stack e-commerce application.
+The project provides a strong foundation for a complete full-stack e-commerce application and has been prepared as a complete assignment submission.

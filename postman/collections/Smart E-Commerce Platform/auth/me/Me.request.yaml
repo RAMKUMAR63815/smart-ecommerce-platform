@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/auth/me"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: oauth2
+  credentials:
+    accessTokenUrl: /auth/login
+    grant_type: password_credentials
+settings: {}
+examples: ./.resources/Me.resources/examples
+order: 1000

@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/products/:product_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  product_id: "1252"
+auth:
+  type: oauth2
+  credentials:
+    accessTokenUrl: /auth/login
+    grant_type: password_credentials
+settings: {}
+examples: ./.resources/Delete Product.resources/examples
+order: 2000

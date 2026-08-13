@@ -1,0 +1,30 @@
+$kind: http-request
+
+name: Register
+
+description: ""
+
+url: "{{baseUrl}}/auth/register"
+
+method: POST
+
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+
+body:
+  type: json
+  content: |-
+    {
+      "name": "Postman User",
+      "email": "postmanuser@gmail.com",
+      "password": "Test@12345"
+    }
+
+settings: {}
+
+examples: ./.resources/Register.resources/examples
+
+order: 1000

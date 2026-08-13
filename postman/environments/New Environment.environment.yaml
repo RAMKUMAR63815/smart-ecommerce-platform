@@ -1,0 +1,4 @@
+name: New Environment
+values:
+  - key: baseurl
+    value: 'http://127.0.0.1:8000'

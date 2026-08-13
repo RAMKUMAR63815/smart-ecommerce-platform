@@ -1,0 +1,148 @@
+/* CART PAGE */
+
+.cart-container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* TITLE */
+
+.cart-container h1 {
+  margin-bottom: 5px;
+}
+
+.cart-container p {
+  color: #666;
+}
+
+/* CONTINUE SHOPPING */
+
+.continue-shopping {
+  display: inline-block;
+  margin: 15px 0 25px;
+  text-decoration: none;
+  color: #007bff;
+}
+
+/* PRODUCT CARD */
+
+.cart-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background: #fff;
+}
+
+.cart-item h2 {
+  margin: 10px 0;
+}
+
+.cart-item p {
+  color: #666;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #28a745;
+  margin: 10px 0;
+}
+
+/* QUANTITY */
+
+.quantity {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.quantity button {
+  width: 35px;
+  height: 35px;
+  border: none;
+  background: #f1f1f1;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 5px;
+}
+
+.quantity span {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* REMOVE BUTTON */
+
+.remove-btn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* ITEM TOTAL */
+
+.item-total {
+  margin-top: 15px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* ORDER SUMMARY */
+
+.order-summary {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  background: #fafafa;
+}
+
+.order-summary h2 {
+  margin-bottom: 15px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.total {
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+  margin-top: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* PLACE ORDER */
+
+.place-order-btn {
+  width: 100%;
+  margin-top: 15px;
+  padding: 12px;
+  border: none;
+  background: #28a745;
+  color: white;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.place-order-btn:hover {
+  background: #218838;
+}
+
+/* SECURE CHECKOUT */
+
+.secure-checkout {
+  text-align: center;
+  margin-top: 10px;
+  color: #666;
+}

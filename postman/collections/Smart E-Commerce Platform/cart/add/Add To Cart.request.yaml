@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/cart/add?user_id=7399&product_id=1252&quantity=1"
+method: POST
+headers:
+  Accept: application/json
+queryParams:
+  user_id: "7399"
+  product_id: "1252"
+  quantity: "1"
+settings: {}
+examples: ./.resources/Add To Cart.resources/examples
+order: 1000

@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/orders/create?user_id=7399"
+method: POST
+headers:
+  Accept: application/json
+queryParams:
+  user_id: "7399"
+settings: {}
+examples: ./.resources/Create Order.resources/examples
+order: 1000

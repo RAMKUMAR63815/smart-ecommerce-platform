@@ -1,0 +1,14 @@
+$kind: collection
+name: Smart E-Commerce Platform
+description: ""
+variables:
+  - key: baseUrl
+    value: /
+    disabled: false
+  - key: json_web_token_0ld2
+    secret: true
+    disabled: false
+auth:
+  type: bearer
+  credentials:
+    token: "{{json_web_token_0ld2}}"

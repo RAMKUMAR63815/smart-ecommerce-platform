@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/auth/refresh?refresh_token=string"
+method: POST
+headers:
+  Accept: application/json
+queryParams:
+  refresh_token: string
+settings: {}
+examples: ./.resources/Refresh Token Endpoint.resources/examples
+order: 1000

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart E-Commerce Dashboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+        }
+
+        .navbar {
+            background: #212529;
+            color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            font-size: 24px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        .welcome {
+            margin-bottom: 25px;
+        }
+
+        .welcome h2 {
+            margin-bottom: 8px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .card .number {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .links {
+            margin-top: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        .links h2 {
+            margin-bottom: 20px;
+        }
+
+        .links a {
+            display: inline-block;
+            padding: 12px 20px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            background: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 900px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <h1>Smart E-Commerce</h1>
+
+        <div>
+            <a href="/">Dashboard</a>
+            <a href="/admin/">Django Admin</a>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div class="welcome">
+            <h2>Admin Dashboard</h2>
+            <p>Manage your Smart E-Commerce Platform</p>
+        </div>
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Users</h3>
+                <div class="number">Users</div>
+            </div>
+
+            <div class="card">
+                <h3>Products</h3>
+                <div class="number">Products</div>
+            </div>
+
+            <div class="card">
+                <h3>Cart</h3>
+                <div class="number">Cart</div>
+            </div>
+
+            <div class="card">
+                <h3>Orders</h3>
+                <div class="number">Orders</div>
+            </div>
+
+        </div>
+
+        <div class="links">
+
+            <h2>Management</h2>
+
+            <a href="/admin/dashboard/users/">
+                Manage Users
+            </a>
+
+            <a href="/admin/dashboard/products/">
+                Manage Products
+            </a>
+
+            <a href="/admin/dashboard/cart/">
+                Manage Cart
+            </a>
+
+            <a href="/admin/dashboard/orders/">
+                Manage Orders
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

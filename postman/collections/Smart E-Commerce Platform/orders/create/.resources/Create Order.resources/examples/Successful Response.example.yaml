@@ -1,0 +1,17 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/orders/create?user_id=7399"
+  method: POST
+  headers:
+    Accept: application/json
+  queryParams:
+    user_id: "7399"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: text
+    content: ""
+order: 1000

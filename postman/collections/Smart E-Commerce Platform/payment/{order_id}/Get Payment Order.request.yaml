@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/payment/:order_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  order_id: "9847"
+settings: {}
+examples: ./.resources/Get Payment Order.resources/examples
+order: 2000

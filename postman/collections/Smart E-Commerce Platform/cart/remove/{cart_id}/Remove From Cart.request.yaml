@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/cart/remove/:cart_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  cart_id: "4004"
+settings: {}
+examples: ./.resources/Remove From Cart.resources/examples
+order: 1000

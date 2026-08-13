@@ -1,0 +1,17 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/auth/refresh?refresh_token=string"
+  method: POST
+  headers:
+    Accept: application/json
+  queryParams:
+    refresh_token: string
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: text
+    content: ""
+order: 1000

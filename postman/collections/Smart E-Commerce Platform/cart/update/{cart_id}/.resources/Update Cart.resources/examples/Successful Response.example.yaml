@@ -1,0 +1,19 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/cart/update/:cart_id?quantity=6294"
+  method: PUT
+  headers:
+    Accept: application/json
+  queryParams:
+    quantity: "6294"
+  pathVariables:
+    cart_id: "4004"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: text
+    content: ""
+order: 1000

@@ -1,0 +1,28 @@
+$kind: http-request
+
+name: Social Login
+
+description: "Auth0 social login"
+
+url: "{{baseUrl}}/auth/social-login"
+
+method: POST
+
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+
+body:
+  type: json
+  content: |-
+    {
+      "token": "AUTH0_ACCESS_TOKEN"
+    }
+
+settings: {}
+
+examples: ./.resources/SocialLogin.resources/examples
+
+order: 1004

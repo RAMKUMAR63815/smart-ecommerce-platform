@@ -1,6 +1,10 @@
-from pydantic import BaseModel
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 
+
+# =========================================================
+# USER SCHEMAS
+# =========================================================
 
 class UserRegister(BaseModel):
     name: str
@@ -18,16 +22,59 @@ class Token(BaseModel):
     token_type: str
 
 
+# =========================================================
+# PRODUCT SCHEMAS
+# =========================================================
+
 class ProductCreate(BaseModel):
     name: str
     description: str
-    price: float
-    stock: int
+    price: float = Field(..., gt=0)
+    category: str
+    stock: int = Field(..., ge=0)
     images: str
 
+
+class ProductResponse(BaseModel):
+    id: int
+    name: str
+    description: str
+    price: float
+    category: str
+    stock: int
+    images: str
+    popularity: int
+
+    class Config:
+        from_attributes = True
+
+
+# =========================================================
+# CART SCHEMAS
+# =========================================================
 
 class CartCreate(BaseModel):
     user_id: int
     product_id: int
-    quantity: int
+    quantity: int = Field(default=1, ge=1)
 
+
+class CartUpdate(BaseModel):
+    quantity: int = Field(..., ge=1)
+
+
+class CartItemResponse(BaseModel):
+    cart_id: int
+    product_id: int
+    product_name: str
+    category: str
+    price: float
+    quantity: int
+    item_total: float
+
+
+class CartResponse(BaseModel):
+    items: list[CartItemResponse]
+    cart_total: float
+    tax: float
+    grand_total: float

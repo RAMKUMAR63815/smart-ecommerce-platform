@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
@@ -11,12 +11,11 @@ router = APIRouter(
 )
 
 
-# =========================
+# =========================================================
 # DATABASE SESSION
-# =========================
+# =========================================================
 
 def get_db():
-
     db = SessionLocal()
 
     try:
@@ -25,24 +24,25 @@ def get_db():
         db.close()
 
 
-# =========================
+# =========================================================
 # ADD TO CART
-# =========================
+# =========================================================
 
 @router.post("/add")
 def add_to_cart(
     user_id: int,
     product_id: int,
-    quantity: int = 1,
+    quantity: int = Query(default=1, ge=1),
     db: Session = Depends(get_db)
 ):
 
-    # Find product
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
+    # -----------------------------------------------------
+    # FIND PRODUCT
+    # -----------------------------------------------------
+
+    product = db.query(Product).filter(
+        Product.id == product_id
+    ).first()
 
     if not product:
         raise HTTPException(
@@ -50,38 +50,39 @@ def add_to_cart(
             detail="Product Not Found"
         )
 
-    # Check quantity
-    if quantity <= 0:
-        raise HTTPException(
-            status_code=400,
-            detail="Quantity must be greater than 0"
-        )
+    # -----------------------------------------------------
+    # CHECK STOCK
+    # -----------------------------------------------------
 
-    # Check stock
     if product.stock < quantity:
         raise HTTPException(
             status_code=400,
-            detail=f"Only {product.stock} items available"
+            detail="Insufficient Stock"
         )
 
-    # Check if product already exists in cart
-    cart = (
-        db.query(Cart)
-        .filter(
-            Cart.user_id == user_id,
-            Cart.product_id == product_id
-        )
-        .first()
-    )
+    # -----------------------------------------------------
+    # FIND EXISTING CART ITEM
+    # -----------------------------------------------------
+
+    cart = db.query(Cart).filter(
+        Cart.user_id == user_id,
+        Cart.product_id == product_id
+    ).first()
+
+    # -----------------------------------------------------
+    # UPDATE EXISTING CART ITEM
+    # -----------------------------------------------------
 
     if cart:
 
-        # Increase cart quantity
         cart.quantity += quantity
+
+    # -----------------------------------------------------
+    # CREATE NEW CART ITEM
+    # -----------------------------------------------------
 
     else:
 
-        # Create new cart item
         cart = Cart(
             user_id=user_id,
             product_id=product_id,
@@ -90,34 +91,33 @@ def add_to_cart(
 
         db.add(cart)
 
-    # Reduce product stock
+    # -----------------------------------------------------
+    # REDUCE STOCK
+    # -----------------------------------------------------
+
     product.stock -= quantity
 
-    db.commit()
+    # -----------------------------------------------------
+    # INCREASE POPULARITY
+    # -----------------------------------------------------
 
+    product.popularity += quantity
+
+    db.commit()
     db.refresh(cart)
-    db.refresh(product)
 
     return {
-        "message": "Added To Cart Successfully",
-
-        "cart": {
-            "id": cart.id,
-            "user_id": cart.user_id,
-            "product_id": cart.product_id,
-            "quantity": cart.quantity,
-            "product_name": product.name,
-            "price": product.price,
-            "total": product.price * cart.quantity
-        },
-
+        "message": "Added To Cart",
+        "cart_id": cart.id,
+        "product_id": product_id,
+        "quantity": cart.quantity,
         "remaining_stock": product.stock
     }
 
 
-# =========================
-# VIEW CART
-# =========================
+# =========================================================
+# VIEW CART + TOTALS
+# =========================================================
 
 @router.get("/")
 def view_cart(
@@ -125,81 +125,95 @@ def view_cart(
     db: Session = Depends(get_db)
 ):
 
-    cart_items = (
-        db.query(Cart, Product)
-        .join(
-            Product,
-            Cart.product_id == Product.id
-        )
-        .filter(
-            Cart.user_id == user_id
-        )
-        .all()
-    )
+    items = db.query(Cart).filter(
+        Cart.user_id == user_id
+    ).all()
 
     result = []
 
-    for cart, product in cart_items:
+    cart_total = 0
+
+    # -----------------------------------------------------
+    # CALCULATE ITEM TOTALS
+    # -----------------------------------------------------
+
+    for item in items:
+
+        item_total = (
+            item.product.price *
+            item.quantity
+        )
+
+        cart_total += item_total
 
         result.append({
-            "id": cart.id,
-            "user_id": cart.user_id,
-            "product_id": cart.product_id,
-            "quantity": cart.quantity,
-
-            "product_name": product.name,
-            "description": product.description,
-            "price": product.price,
-            "image": product.images,
-
-            "total": product.price * cart.quantity,
-
-            "stock": product.stock
+            "cart_id": item.id,
+            "product_id": item.product.id,
+            "product_name": item.product.name,
+            "category": item.product.category,
+            "price": item.product.price,
+            "quantity": item.quantity,
+            "item_total": round(item_total, 2)
         })
 
+    # -----------------------------------------------------
+    # TAX
+    # -----------------------------------------------------
+
+    tax = round(
+        cart_total * 0.18,
+        2
+    )
+
+    # -----------------------------------------------------
+    # GRAND TOTAL
+    # -----------------------------------------------------
+
+    grand_total = round(
+        cart_total + tax,
+        2
+    )
+
     return {
-        "count": len(result),
-        "cart": result
+        "items": result,
+        "cart_total": round(cart_total, 2),
+        "tax": tax,
+        "grand_total": grand_total
     }
 
 
-# =========================
-# UPDATE QUANTITY
-# =========================
+# =========================================================
+# UPDATE CART QUANTITY
+# =========================================================
 
 @router.put("/update/{cart_id}")
 def update_cart(
     cart_id: int,
-    quantity: int,
+    quantity: int = Query(..., ge=1),
     db: Session = Depends(get_db)
 ):
 
-    # Find cart
-    cart = (
-        db.query(Cart)
-        .filter(Cart.id == cart_id)
-        .first()
-    )
+    # -----------------------------------------------------
+    # FIND CART
+    # -----------------------------------------------------
+
+    cart = db.query(Cart).filter(
+        Cart.id == cart_id
+    ).first()
 
     if not cart:
         raise HTTPException(
             status_code=404,
-            detail="Cart Item Not Found"
+            detail="Cart Not Found"
         )
 
-    # Quantity must be at least 1
-    if quantity < 1:
-        raise HTTPException(
-            status_code=400,
-            detail="Quantity must be at least 1"
-        )
+    # -----------------------------------------------------
+    # FIND PRODUCT
+    # -----------------------------------------------------
 
-    # Find product
-    product = (
-        db.query(Product)
-        .filter(Product.id == cart.product_id)
-        .first()
-    )
+    product = db.query(Product).filter(
+        Product.id == cart.product_id
+    ).first()
 
     if not product:
         raise HTTPException(
@@ -207,102 +221,104 @@ def update_cart(
             detail="Product Not Found"
         )
 
-    # Calculate quantity difference
-    difference = quantity - cart.quantity
+    # -----------------------------------------------------
+    # CALCULATE QUANTITY DIFFERENCE
+    # -----------------------------------------------------
 
-    # Example:
-    #
-    # Old cart quantity = 1
-    # New quantity = 2
-    #
-    # difference = 2 - 1 = 1
-    #
-    # Need to remove 1 more item from stock.
+    old_quantity = cart.quantity
+
+    difference = quantity - old_quantity
+
+    # -----------------------------------------------------
+    # INCREASING CART QUANTITY
+    # -----------------------------------------------------
 
     if difference > 0:
 
-        # Check available stock
         if product.stock < difference:
 
             raise HTTPException(
                 status_code=400,
-                detail=f"Only {product.stock} more items available"
+                detail="Insufficient Stock"
             )
 
-        # Reduce stock
         product.stock -= difference
+
+    # -----------------------------------------------------
+    # DECREASING CART QUANTITY
+    # -----------------------------------------------------
 
     elif difference < 0:
 
-        # Customer decreased quantity
-        #
-        # Example:
-        # Old quantity = 3
-        # New quantity = 2
-        #
-        # Return 1 item to stock.
-
         product.stock += abs(difference)
 
-    # Update cart quantity
+    # -----------------------------------------------------
+    # UPDATE CART
+    # -----------------------------------------------------
+
     cart.quantity = quantity
 
     db.commit()
-
     db.refresh(cart)
-    db.refresh(product)
 
     return {
-        "message": "Cart Updated",
-
+        "message": "Cart Updated Successfully",
         "cart_id": cart.id,
-
+        "product_id": cart.product_id,
         "quantity": cart.quantity,
-
         "remaining_stock": product.stock
     }
 
 
-# =========================
-# REMOVE FROM CART
-# =========================
+# =========================================================
+# REMOVE CART ITEM
+# =========================================================
 
 @router.delete("/remove/{cart_id}")
-def remove_from_cart(
+def remove_cart(
     cart_id: int,
     db: Session = Depends(get_db)
 ):
 
-    # Find cart item
-    cart = (
-        db.query(Cart)
-        .filter(Cart.id == cart_id)
-        .first()
-    )
+    # -----------------------------------------------------
+    # FIND CART
+    # -----------------------------------------------------
+
+    cart = db.query(Cart).filter(
+        Cart.id == cart_id
+    ).first()
 
     if not cart:
         raise HTTPException(
             status_code=404,
-            detail="Cart Item Not Found"
+            detail="Cart Not Found"
         )
 
-    # Find product
-    product = (
-        db.query(Product)
-        .filter(Product.id == cart.product_id)
-        .first()
-    )
+    # -----------------------------------------------------
+    # FIND PRODUCT
+    # -----------------------------------------------------
+
+    product = db.query(Product).filter(
+        Product.id == cart.product_id
+    ).first()
+
+    # -----------------------------------------------------
+    # RETURN RESERVED STOCK
+    # -----------------------------------------------------
 
     if product:
 
-        # Return cart quantity back to stock
         product.stock += cart.quantity
 
-    # Delete cart item
+    # -----------------------------------------------------
+    # DELETE CART ITEM
+    # -----------------------------------------------------
+
     db.delete(cart)
 
     db.commit()
 
     return {
-        "message": "Removed From Cart"
+        "message": "Removed Successfully",
+        "returned_stock": cart.quantity
     }

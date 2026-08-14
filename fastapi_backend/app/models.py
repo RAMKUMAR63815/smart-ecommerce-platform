@@ -1,7 +1,5 @@
-from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import String
-from sqlalchemy import Float
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text
+from sqlalchemy.orm import relationship
 
 from .database import Base
 
@@ -14,73 +12,61 @@ class User(Base):
 
     __tablename__ = "users"
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100))
+    email = Column(String(100), unique=True, index=True)
+    password = Column(String(255))
+    role = Column(String(20), default="customer")
 
-    name = Column(
-        String(100),
-        nullable=True
-    )
-
-    email = Column(
-        String(100),
-        unique=True,
-        nullable=False,
-        index=True
-    )
-
-    password = Column(
-        String(255),
-        nullable=True
-    )
-
-    role = Column(
-        String(20),
-        default="customer",
-        nullable=False
-    )
+    carts = relationship("Cart", back_populates="user")
+    orders = relationship("Order", back_populates="user")
 
 
 # =========================
 # PRODUCT MODEL
 # =========================
-
 class Product(Base):
-
     __tablename__ = "products"
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
+    id = Column(Integer, primary_key=True, index=True)
 
-    name = Column(
-        String(200),
-        nullable=True
-    )
+    name = Column(String(255), nullable=False)
 
     description = Column(
-        String(500),
+        Text,
         nullable=True
+    )
+
+    category = Column(
+        String(100),
+        nullable=False
     )
 
     price = Column(
         Float,
-        nullable=True
+        nullable=False
     )
 
     stock = Column(
         Integer,
-        nullable=True
+        nullable=False,
+        default=0
     )
 
     images = Column(
-        String(500),
+        Text,
         nullable=True
+    )
+
+    popularity = Column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+
+    carts = relationship(
+        "Cart",
+        back_populates="product"
     )
 
 
@@ -92,27 +78,15 @@ class Cart(Base):
 
     __tablename__ = "cart"
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
+    id = Column(Integer, primary_key=True, index=True)
 
-    user_id = Column(
-        Integer,
-        nullable=False
-    )
+    user_id = Column(Integer, ForeignKey("users.id"))
+    product_id = Column(Integer, ForeignKey("products.id"))
 
-    product_id = Column(
-        Integer,
-        nullable=False
-    )
+    quantity = Column(Integer, default=1)
 
-    quantity = Column(
-        Integer,
-        nullable=False,
-        default=1
-    )
+    user = relationship("User", back_populates="carts")
+    product = relationship("Product", back_populates="carts")
 
 
 # =========================
@@ -123,24 +97,12 @@ class Order(Base):
 
     __tablename__ = "orders"
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
+    id = Column(Integer, primary_key=True, index=True)
 
-    user_id = Column(
-        Integer,
-        nullable=False
-    )
+    user_id = Column(Integer, ForeignKey("users.id"))
 
-    total_amount = Column(
-        Float,
-        nullable=True
-    )
+    total_amount = Column(Float)
 
-    status = Column(
-        String(50),
-        default="Pending",
-        nullable=False
-    )
+    status = Column(String(50), default="Pending")
+
+    user = relationship("User", back_populates="orders")

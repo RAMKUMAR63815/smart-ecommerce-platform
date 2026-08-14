@@ -1,79 +1,185 @@
-# Smart E-Commerce Platform
+# 🛒 Smart E-Commerce Platform
 
-A full-stack **Smart E-Commerce Platform** developed as part of a backend/full-stack development assignment. The application provides secure user authentication, JWT-based authorization, Auth0 social login, role-based access control, product management, cart management, order processing, payment handling, dashboard and analytics APIs, and API testing using Postman.
+A full-stack **Smart E-Commerce Platform** developed using **FastAPI, MySQL, SQLAlchemy, JWT, Auth0, React/Next.js, Django, and Postman**.
 
----
-
-## 1. Project Overview
-
-The Smart E-Commerce Platform follows a modular architecture that separates backend services, administration, frontend functionality, database operations, authentication, and API testing.
-
-### Main Features
-
-* User registration and login
-* Secure password hashing
-* JWT access token authentication
-* JWT refresh token authentication
-* Current user authentication
-* Auth0 social login integration
-* Role-Based Access Control (RBAC)
-* Admin, Staff, and Customer roles
-* Product management
-* Shopping cart management
-* Order creation and management
-* Payment status management
-* Dashboard statistics
-* Analytics APIs
-* Swagger/OpenAPI documentation
-* Postman API collection
-* MySQL database integration
+The platform provides secure authentication, role-based access control, product management, product filtering, shopping cart management, order processing, payment handling, dashboard and analytics APIs, Swagger documentation, and Postman API testing.
 
 ---
 
-# 2. Technology Stack
+# 📌 1. Project Overview
 
-## Backend
+The Smart E-Commerce Platform follows a modular architecture separating:
 
-* Python
-* FastAPI
-* SQLAlchemy
-* Pydantic
-* Python-Jose
-* JWT
-* MySQL
+- Backend APIs
+- Authentication
+- Database
+- Product management
+- Cart management
+- Order management
+- Payment management
+- Admin dashboard
+- Frontend
+- API testing
+
+The application supports three main user roles:
+
+- **Admin**
+- **Staff**
+- **Customer**
+
+---
+
+# 🚀 2. Main Features
 
 ## Authentication
 
-* JWT Access Token
-* JWT Refresh Token
-* Password Hashing
-* Auth0
-* Google Login
-* Facebook Login
+- User registration
+- User login
+- Password hashing
+- JWT access token
+- JWT refresh token
+- Current user authentication
+- Auth0 social login
+- Google Login
+- Facebook Login
+
+## Authorization
+
+- Role-Based Access Control (RBAC)
+- Admin role
+- Staff role
+- Customer role
+- Protected APIs
+
+## Product Management
+
+- Create product
+- Get all products
+- Get product by ID
+- Get products by category
+- Update product
+- Delete product
+- Product price filtering
+- Product popularity filtering
+- Product stock filtering
+- Category filtering
+- Popular products sorting
+
+## Shopping Cart
+
+- Add product to cart
+- View cart
+- Update quantity
+- Increase quantity
+- Decrease quantity
+- Remove product
+- Automatic stock management
+- Automatic cart calculation
+- Item total calculation
+- Cart subtotal
+- Tax calculation
+- Grand total calculation
+
+## Orders
+
+- Create order
+- View orders
+- View individual order
+- Order status management
+- Payment status management
+
+## Payment
+
+- Payment information
+- Payment processing
+- Payment status update
+
+## Dashboard & Analytics
+
+- Dashboard statistics
+- User statistics
+- Product statistics
+- Cart statistics
+- Order statistics
+- Analytics APIs
+- Admin analytics
 
 ## API Testing
 
-* Swagger UI
-* Postman
-
-## Additional Technologies
-
-* Django
-* React / Next.js
-* Git
-* GitHub
+- Swagger UI
+- OpenAPI
+- Postman collection
+- Postman environment
 
 ---
 
-# 3. Project Architecture
+# 🛠️ 3. Technology Stack
+
+## Backend
+
+- Python
+- FastAPI
+- SQLAlchemy
+- Pydantic
+- Python-Jose
+- JWT
+- MySQL
+
+## Authentication
+
+- JWT
+- Password Hashing
+- Auth0
+- Google Login
+- Facebook Login
+
+## Frontend
+
+- React.js
+- Next.js
+- Axios
+- React Router
+
+## Admin
+
+- Django
+
+## API Testing
+
+- Swagger UI
+- Postman
+
+## Development Tools
+
+- Git
+- GitHub
+- Visual Studio Code
+
+---
+
+# 📁 4. Project Architecture
 
 ```text
 smart_ecommerce/
 │
 ├── fastapi_backend/
+│   │
 │   ├── app/
+│   │   │
 │   │   ├── routers/
+│   │   │   ├── auth.py
+│   │   │   ├── products.py
+│   │   │   ├── cart.py
+│   │   │   ├── orders.py
+│   │   │   ├── payment.py
+│   │   │   ├── dashboard.py
+│   │   │   └── analytics.py
+│   │   │
 │   │   ├── auth/
+│   │   │   ├── jwt_handler.py
+│   │   │   ├── security.py
+│   │   │   └── auth0.py
+│   │   │
 │   │   ├── models.py
 │   │   ├── schemas.py
 │   │   ├── database.py
@@ -81,22 +187,31 @@ smart_ecommerce/
 │   │   └── main.py
 │   │
 │   ├── requirements.txt
+│   ├── .env
 │   └── ...
 │
 ├── django_admin/
 │
 ├── frontend/
+│   │
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── api/
+│   │   └── ...
+│   │
+│   └── package.json
 │
 ├── postman/
 │   ├── collections/
 │   │   └── Smart E-Commerce Platform/
+│   │
 │   ├── environments/
 │   └── globals/
 │
 ├── .env.example
 ├── .gitignore
 └── README.md
-```
 
 > The exact folder structure may vary depending on the final project configuration.
 

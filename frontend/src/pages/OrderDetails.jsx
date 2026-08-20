@@ -1,69 +1,136 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  useNavigate,
+  useParams
+} from "react-router-dom";
+
 import api from "../api/api";
 import "./OrderDetails.css";
 
 function OrderDetails() {
+
   const { orderId } = useParams();
+
   const navigate = useNavigate();
 
   const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  // =========================================================
+  // LOAD ORDER
+  // =========================================================
 
   useEffect(() => {
     loadOrder();
   }, [orderId]);
 
   const loadOrder = async () => {
+
     try {
+
       setLoading(true);
       setError("");
 
-      const res = await api.get(`/orders/${orderId}`);
+      const res = await api.get(
+        `/orders/${orderId}`
+      );
 
-      console.log("Order details:", res.data);
+      console.log(
+        "Order details:",
+        res.data
+      );
 
       setOrder(res.data);
+
     } catch (err) {
-      console.error("Order details error:", err);
+
+      console.error(
+        "Order details error:",
+        err
+      );
 
       setError(
         err.response?.data?.detail ||
-          "Failed to load order"
+        "Failed to load order"
       );
+
     } finally {
+
       setLoading(false);
+
     }
   };
 
+  // =========================================================
+  // LOADING
+  // =========================================================
+
   if (loading) {
+
     return (
       <div style={pageStyle}>
+
         <div style={cardStyle}>
-          <h2>Loading Order...</h2>
+
+          <h2
+            style={{
+              color: "white"
+            }}
+          >
+            Loading Order...
+          </h2>
+
         </div>
+
       </div>
     );
   }
 
+  // =========================================================
+  // ERROR
+  // =========================================================
+
   if (error) {
+
     return (
       <div style={pageStyle}>
-        <div style={cardStyle}>
-          <h2>Order Error</h2>
 
-          <p style={{ color: "red" }}>
+        <div style={cardStyle}>
+
+          <h2
+            style={{
+              color: "white"
+            }}
+          >
+            Order Error
+          </h2>
+
+          <p
+            style={{
+              color: "red"
+            }}
+          >
             {error}
           </p>
 
           <button
-            onClick={() => navigate("/orders")}
-            style={secondaryButtonStyle}
+            onClick={() =>
+              navigate("/orders")
+            }
+            style={
+              secondaryButtonStyle
+            }
           >
             Back to Orders
           </button>
+
         </div>
+
       </div>
     );
   }
@@ -72,8 +139,22 @@ function OrderDetails() {
     return null;
   }
 
+  const paymentStatus =
+    String(
+      order.payment_status || ""
+    ).toLowerCase();
+
+  const orderStatus =
+    String(
+      order.order_status || ""
+    ).toLowerCase();
+
+  const isPaid =
+    paymentStatus === "paid";
+
   return (
     <div style={pageStyle}>
+
       <div style={cardStyle}>
 
         <h1
@@ -88,17 +169,28 @@ function OrderDetails() {
 
         <div
           style={{
-            borderBottom: "1px solid #444",
+            borderBottom:
+              "1px solid #444",
             paddingBottom: "20px",
           }}
         >
 
-          <h2 style={{ color: "white" }}>
+          <h2
+            style={{
+              color: "white"
+            }}
+          >
             Order #{order.id}
           </h2>
 
-          <p style={{ color: "white" }}>
-            <strong>User ID:</strong>{" "}
+          <p
+            style={{
+              color: "white"
+            }}
+          >
+            <strong>
+              User ID:
+            </strong>{" "}
             {order.user_id}
           </p>
 
@@ -109,22 +201,70 @@ function OrderDetails() {
               color: "white",
             }}
           >
-            Total Amount: ₹{order.total_amount}
+            Total Amount: ₹
+            {Number(
+              order.total_amount
+            ).toLocaleString("en-IN")}
           </p>
 
-          <p style={{ color: "white" }}>
-            <strong>Status:</strong>{" "}
+          <p
+            style={{
+              color: "white"
+            }}
+          >
+            <strong>
+              Payment Status:
+            </strong>{" "}
+
+            <span
+              style={{
+                color: isPaid
+                  ? "#22c55e"
+                  : "#f59e0b",
+                fontWeight: "bold",
+              }}
+            >
+              {order.payment_status}
+            </span>
+          </p>
+
+          <p
+            style={{
+              color: "white"
+            }}
+          >
+            <strong>
+              Order Status:
+            </strong>{" "}
+
             <span
               style={{
                 color:
-                  order.status === "Paid"
+                  orderStatus ===
+                  "confirmed"
                     ? "#22c55e"
                     : "#f59e0b",
                 fontWeight: "bold",
               }}
             >
-              {order.status}
+              {order.order_status}
             </span>
+          </p>
+
+          <p
+            style={{
+              color: "#d1d5db"
+            }}
+          >
+            <strong>
+              Created:
+            </strong>{" "}
+
+            {order.created_at
+              ? new Date(
+                  order.created_at
+                ).toLocaleString("en-IN")
+              : "N/A"}
           </p>
 
         </div>
@@ -140,42 +280,55 @@ function OrderDetails() {
         >
 
           <button
-            onClick={() => navigate("/orders")}
-            style={secondaryButtonStyle}
+            onClick={() =>
+              navigate("/orders")
+            }
+            style={
+              secondaryButtonStyle
+            }
           >
             Back to Orders
           </button>
 
-          {order.status !== "Paid" && (
-            <button
-              onClick={() => {
-                console.log(
-                  "Going to payment:",
-                  order.id
-                );
+          {isPaid ? (
 
-                navigate(`/payment/${order.id}`);
-              }}
-              style={primaryButtonStyle}
-            >
-              Proceed to Payment
-            </button>
-          )}
-
-          {order.status === "Paid" && (
             <button
-              onClick={() => navigate("/products")}
-              style={primaryButtonStyle}
+              onClick={() =>
+                navigate("/products")
+              }
+              style={
+                primaryButtonStyle
+              }
             >
               Continue Shopping
             </button>
+
+          ) : (
+
+            <button
+              onClick={() =>
+                navigate("/cart")
+              }
+              style={
+                primaryButtonStyle
+              }
+            >
+              Return to Cart
+            </button>
+
           )}
 
         </div>
+
       </div>
+
     </div>
   );
 }
+
+// =========================================================
+// STYLES
+// =========================================================
 
 const pageStyle = {
   minHeight: "100vh",
@@ -194,7 +347,8 @@ const cardStyle = {
   backgroundColor: "#111827",
   padding: "35px",
   borderRadius: "12px",
-  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+  boxShadow:
+    "0 4px 20px rgba(0, 0, 0, 0.08)",
   boxSizing: "border-box",
 };
 

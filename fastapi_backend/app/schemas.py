@@ -78,3 +78,7 @@ class CartResponse(BaseModel):
     cart_total: float
     tax: float
     grand_total: float
+
+class CheckoutRequest(BaseModel):
+
+    user_id: int

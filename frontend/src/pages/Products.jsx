@@ -1,32 +1,44 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  useEffect,
+  useState
+} from "react";
+
+import {
+  useNavigate
+} from "react-router-dom";
+
 import api from "../api/api";
+
 import "./Products.css";
 
 function Products() {
 
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] =
+    useState([]);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [addingId, setAddingId] = useState(null);
+  const [addingId, setAddingId] =
+    useState(null);
 
-  // =========================================================
-  // FILTER STATES
-  // =========================================================
+  const [category, setCategory] =
+    useState("");
 
-  const [category, setCategory] = useState("");
+  const [minPrice, setMinPrice] =
+    useState("");
 
-  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] =
+    useState("");
 
-  const [maxPrice, setMaxPrice] = useState("");
+  const [minPopularity, setMinPopularity] =
+    useState("");
 
-  const [minPopularity, setMinPopularity] = useState("");
+  const [inStock, setInStock] =
+    useState("");
 
-  const [inStock, setInStock] = useState("");
-
-  const navigate = useNavigate();
-
+  const navigate =
+    useNavigate();
 
   // =========================================================
   // LOAD PRODUCTS
@@ -36,18 +48,14 @@ function Products() {
     loadProducts();
   }, []);
 
-
-  // =========================================================
-  // GET PRODUCTS WITH FILTERS
-  // =========================================================
-
   const loadProducts = async () => {
 
     try {
 
       setLoading(true);
 
-      const params = new URLSearchParams();
+      const params =
+        new URLSearchParams();
 
       if (category.trim()) {
         params.append(
@@ -96,7 +104,9 @@ function Products() {
         await api.get(url);
 
       setProducts(
-        Array.isArray(response.data)
+        Array.isArray(
+          response.data
+        )
           ? response.data
           : []
       );
@@ -117,51 +127,41 @@ function Products() {
     }
   };
 
-
   // =========================================================
-  // APPLY FILTERS
+  // FILTERS
   // =========================================================
 
   const applyFilters = () => {
-
     loadProducts();
-
   };
-
-
-  // =========================================================
-  // CLEAR FILTERS
-  // =========================================================
 
   const clearFilters = () => {
 
     setCategory("");
-
     setMinPrice("");
-
     setMaxPrice("");
-
     setMinPopularity("");
-
     setInStock("");
 
     setTimeout(() => {
       loadProducts();
     }, 0);
-
   };
-
 
   // =========================================================
   // ADD TO CART
   // =========================================================
 
-  const addToCart = async (productId) => {
+  const addToCart = async (
+    productId
+  ) => {
 
     try {
 
       const userId =
-        localStorage.getItem("user_id");
+        localStorage.getItem(
+          "user_id"
+        );
 
       if (!userId) {
 
@@ -184,7 +184,6 @@ function Products() {
         "Product added to cart"
       );
 
-      // Reload products so stock/popularity updates
       await loadProducts();
 
     } catch (error) {
@@ -206,9 +205,8 @@ function Products() {
     }
   };
 
-
   // =========================================================
-  // LOADING SCREEN
+  // LOADING
   // =========================================================
 
   if (loading) {
@@ -228,23 +226,12 @@ function Products() {
         </div>
 
       </div>
-
     );
-
   }
-
-
-  // =========================================================
-  // PRODUCTS PAGE
-  // =========================================================
 
   return (
 
     <div className="products-page">
-
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
 
       <div className="products-header">
 
@@ -275,14 +262,7 @@ function Products() {
 
       </div>
 
-
-      {/* =====================================================
-          FILTER SECTION
-      ===================================================== */}
-
       <div className="product-filters">
-
-        {/* CATEGORY */}
 
         <div className="filter-group">
 
@@ -295,14 +275,13 @@ function Products() {
             placeholder="Example: phone"
             value={category}
             onChange={(e) =>
-              setCategory(e.target.value)
+              setCategory(
+                e.target.value
+              )
             }
           />
 
         </div>
-
-
-        {/* MIN PRICE */}
 
         <div className="filter-group">
 
@@ -316,14 +295,13 @@ function Products() {
             placeholder="₹ Min"
             value={minPrice}
             onChange={(e) =>
-              setMinPrice(e.target.value)
+              setMinPrice(
+                e.target.value
+              )
             }
           />
 
         </div>
-
-
-        {/* MAX PRICE */}
 
         <div className="filter-group">
 
@@ -337,14 +315,13 @@ function Products() {
             placeholder="₹ Max"
             value={maxPrice}
             onChange={(e) =>
-              setMaxPrice(e.target.value)
+              setMaxPrice(
+                e.target.value
+              )
             }
           />
 
         </div>
-
-
-        {/* POPULARITY */}
 
         <div className="filter-group">
 
@@ -366,9 +343,6 @@ function Products() {
 
         </div>
 
-
-        {/* STOCK */}
-
         <div className="filter-group">
 
           <label>
@@ -378,7 +352,9 @@ function Products() {
           <select
             value={inStock}
             onChange={(e) =>
-              setInStock(e.target.value)
+              setInStock(
+                e.target.value
+              )
             }
           >
 
@@ -398,18 +374,12 @@ function Products() {
 
         </div>
 
-
-        {/* APPLY */}
-
         <button
           className="filter-btn"
           onClick={applyFilters}
         >
           Apply Filters
         </button>
-
-
-        {/* CLEAR */}
 
         <button
           className="clear-filter-btn"
@@ -420,28 +390,20 @@ function Products() {
 
       </div>
 
-
-      {/* =====================================================
-          PRODUCT COUNT
-      ===================================================== */}
-
       <div className="product-result-info">
 
         Showing{" "}
+
         <strong>
           {products.length}
         </strong>{" "}
+
         product
         {products.length !== 1
           ? "s"
           : ""}
 
       </div>
-
-
-      {/* =====================================================
-          EMPTY PRODUCTS
-      ===================================================== */}
 
       {products.length === 0 ? (
 
@@ -469,173 +431,144 @@ function Products() {
 
       ) : (
 
-        /* ===================================================
-           PRODUCT GRID
-        =================================================== */
-
         <div className="product-grid">
 
-          {products.map((product) => (
+          {products.map(
+            (product) => (
 
-            <div
-              className="product-card"
-              key={product.id}
-            >
+              <div
+                className="product-card"
+                key={product.id}
+              >
 
-              {/* PRODUCT IMAGE */}
+                <div className="product-image">
 
-              <div className="product-image">
+                  {product.images ? (
 
-                {product.images ? (
-
-                  <img
-                    src={product.images}
-                    alt={product.name}
-                    onError={(e) => {
-
-                      e.currentTarget.style.display =
-                        "none";
-
-                    }}
-                  />
-
-                ) : (
-
-                  <span>
-                    🛍️
-                  </span>
-
-                )}
-
-              </div>
-
-
-              {/* PRODUCT CONTENT */}
-
-              <div className="product-content">
-
-                <span className="product-id">
-
-                  PRODUCT #{product.id}
-
-                </span>
-
-
-                <h2>
-                  {product.name}
-                </h2>
-
-
-                <p className="product-description">
-
-                  {product.description ||
-                    "No description available."}
-
-                </p>
-
-
-                {/* CATEGORY */}
-
-                <div className="product-category">
-
-                  Category:{" "}
-
-                  <strong>
-                    {product.category}
-                  </strong>
-
-                </div>
-
-
-                {/* PRICE */}
-
-                <div className="product-price">
-
-                  ₹
-                  {Number(
-                    product.price
-                  ).toLocaleString(
-                    "en-IN"
-                  )}
-
-                </div>
-
-
-                {/* POPULARITY */}
-
-                <div className="product-popularity">
-
-                  ⭐ Popularity:{" "}
-
-                  {product.popularity || 0}
-
-                </div>
-
-
-                {/* STOCK */}
-
-                <div className="stock-row">
-
-                  {product.stock > 0 ? (
-
-                    <span className="in-stock">
-
-                      ● In Stock ({product.stock})
-
-                    </span>
+                    <img
+                      src={product.images}
+                      alt={product.name}
+                      onError={(e) => {
+                        e.currentTarget.style.display =
+                          "none";
+                      }}
+                    />
 
                   ) : (
 
-                    <span className="out-stock">
-
-                      ● Out of Stock
-
+                    <span>
+                      🛍️
                     </span>
 
                   )}
 
                 </div>
 
+                <div className="product-content">
 
-                {/* ADD TO CART */}
+                  <span className="product-id">
+                    PRODUCT #{product.id}
+                  </span>
 
-                <button
-                  className="add-cart-btn"
-                  disabled={
-                    product.stock <= 0 ||
-                    addingId === product.id
-                  }
-                  onClick={() =>
-                    addToCart(product.id)
-                  }
-                >
+                  <h2>
+                    {product.name}
+                  </h2>
 
-                  {addingId === product.id
+                  <p className="product-description">
+                    {product.description ||
+                      "No description available."}
+                  </p>
 
-                    ? "Adding..."
+                  <div className="product-category">
 
-                    : product.stock <= 0
+                    Category:{" "}
 
-                    ? "Out of Stock"
+                    <strong>
+                      {product.category}
+                    </strong>
 
-                    : "🛒 Add to Cart"
+                  </div>
 
-                  }
+                  <div className="product-price">
 
-                </button>
+                    ₹
+                    {Number(
+                      product.price
+                    ).toLocaleString(
+                      "en-IN"
+                    )}
+
+                  </div>
+
+                  <div className="product-popularity">
+
+                    ⭐ Popularity:{" "}
+
+                    {product.popularity ||
+                      0}
+
+                  </div>
+
+                  <div className="stock-row">
+
+                    {product.stock > 0 ? (
+
+                      <span className="in-stock">
+
+                        ● In Stock (
+                        {product.stock}
+                        )
+
+                      </span>
+
+                    ) : (
+
+                      <span className="out-stock">
+
+                        ● Out of Stock
+
+                      </span>
+
+                    )}
+
+                  </div>
+
+                  <button
+                    className="add-cart-btn"
+                    disabled={
+                      product.stock <= 0 ||
+                      addingId ===
+                        product.id
+                    }
+                    onClick={() =>
+                      addToCart(
+                        product.id
+                      )
+                    }
+                  >
+
+                    {addingId ===
+                    product.id
+                      ? "Adding..."
+                      : product.stock <=
+                          0
+                      ? "Out of Stock"
+                      : "🛒 Add to Cart"}
+
+                  </button>
+
+                </div>
 
               </div>
 
-            </div>
-
-          ))}
+            )
+          )}
 
         </div>
 
       )}
 
     </div>
-
   );
 }
 

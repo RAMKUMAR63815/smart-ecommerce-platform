@@ -1,205 +1,363 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "../api/api";
+import "./Orders.css";
 
 function Orders() {
-
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const userId = 1;
-
   const navigate = useNavigate();
 
-  // =========================
+  const userId =
+    localStorage.getItem("user_id");
+
+  // =====================================================
   // LOAD ORDERS
-  // =========================
+  // =====================================================
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    if (userId) {
+      loadOrders();
+    } else {
+      setError("Please login first.");
+      setLoading(false);
+    }
+  }, [userId]);
 
   const loadOrders = async () => {
-
     try {
-
       setLoading(true);
       setError("");
 
-      const res = await axios.get(
-        `http://127.0.0.1:8000/orders/?user_id=${userId}`
+      const response = await api.get(
+        `/orders/?user_id=${userId}`
       );
 
-      console.log("Orders response:", res.data);
+      console.log(
+        "Orders response:",
+        response.data
+      );
 
-      if (Array.isArray(res.data)) {
-
-        setOrders(res.data);
-
-      } else {
-
-        setOrders([]);
-
-      }
+      setOrders(
+        Array.isArray(response.data)
+          ? response.data
+          : []
+      );
 
     } catch (err) {
+      console.error(
+        "Orders error:",
+        err
+      );
 
-      console.error("Orders error:", err);
-
-      if (err.response) {
-
-        setError(
-          err.response.data.detail ||
-          "Failed to load orders"
-        );
-
-      } else {
-
-        setError("Cannot connect to server");
-
-      }
+      setError(
+        err.response?.data?.detail ||
+        "Failed to load orders"
+      );
 
       setOrders([]);
 
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
-  // =========================
+  // =====================================================
   // LOADING
-  // =========================
+  // =====================================================
 
   if (loading) {
 
     return (
-      <div style={{ padding: "20px" }}>
+      <div className="orders-page">
 
-        <h1>My Orders</h1>
+        <div className="orders-container">
 
-        <p>Loading orders...</p>
+          <h1>
+            My Orders
+          </h1>
+
+          <div className="orders-loading">
+
+            <div className="spinner"></div>
+
+            <p>
+              Loading orders...
+            </p>
+
+          </div>
+
+        </div>
 
       </div>
     );
-
   }
 
-  // =========================
+  // =====================================================
   // ERROR
-  // =========================
+  // =====================================================
 
   if (error) {
 
     return (
-      <div style={{ padding: "20px" }}>
+      <div className="orders-page">
 
-        <h1>My Orders</h1>
+        <div className="orders-container">
 
-        <p style={{ color: "red" }}>
-          {error}
-        </p>
+          <h1>
+            My Orders
+          </h1>
 
-        <button onClick={loadOrders}>
-          Try Again
-        </button>
+          <div className="orders-error">
+
+            <div className="error-icon">
+              !
+            </div>
+
+            <h2>
+              Unable to load orders
+            </h2>
+
+            <p>
+              {error}
+            </p>
+
+            <button
+              className="retry-btn"
+              onClick={loadOrders}
+            >
+              Try Again
+            </button>
+
+          </div>
+
+        </div>
 
       </div>
     );
-
   }
 
-  // =========================
-  // ORDERS PAGE
-  // =========================
+  // =====================================================
+  // PAGE
+  // =====================================================
 
   return (
+    <div className="orders-page">
 
-    <div
-      style={{
-        padding: "20px"
-      }}
-    >
+      <div className="orders-container">
 
-      <h1>My Orders</h1>
+        <div className="orders-header">
 
-      {orders.length === 0 ? (
+          <div>
 
-        <div>
+            <h1>
+              My Orders
+            </h1>
 
-          <p>No Orders Found</p>
+            <p>
+              View and track your recent orders
+            </p>
+
+          </div>
 
           <button
-            onClick={() => navigate("/products")}
+            className="shop-btn"
+            onClick={() =>
+              navigate("/products")
+            }
           >
             Continue Shopping
           </button>
 
         </div>
 
-      ) : (
+        {orders.length === 0 ? (
 
-        <div>
+          <div className="empty-orders">
 
-          {orders.map((order) => (
-
-            <div
-              key={order.id}
-              style={{
-                border: "1px solid #ccc",
-                padding: "20px",
-                marginBottom: "15px",
-                borderRadius: "8px"
-              }}
-            >
-
-              <h2>
-                Order ID : {order.id}
-              </h2>
-
-              <p>
-                <strong>User ID :</strong>{" "}
-                {order.user_id}
-              </p>
-
-              <p>
-                <strong>Total :</strong>{" "}
-                ₹{order.total_amount}
-              </p>
-
-              <p>
-                <strong>Status :</strong>{" "}
-                {order.status}
-              </p>
-
-              {/* VIEW DETAILS */}
-
-              <button
-                onClick={() =>
-                  navigate(`/orders/${order.id}`)
-                }
-                style={{
-                  padding: "10px 15px",
-                  marginTop: "10px",
-                  cursor: "pointer"
-                }}
-              >
-                View Details
-              </button>
-
+            <div className="empty-icon">
+              🛒
             </div>
 
-          ))}
+            <h2>
+              No Orders Found
+            </h2>
 
-        </div>
+            <p>
+              You haven't placed any orders yet.
+            </p>
 
-      )}
+            <button
+              className="shop-btn"
+              onClick={() =>
+                navigate("/products")
+              }
+            >
+              Start Shopping
+            </button>
+
+          </div>
+
+        ) : (
+
+          <div className="orders-list">
+
+            {orders.map((order) => {
+
+              const isPaid =
+                String(
+                  order.payment_status
+                ).toLowerCase() === "paid";
+
+              const isConfirmed =
+                String(
+                  order.order_status
+                ).toLowerCase() ===
+                "confirmed";
+
+              return (
+                <div
+                  className="order-card"
+                  key={order.id}
+                >
+
+                  <div className="order-card-header">
+
+                    <div>
+
+                      <span className="order-label">
+                        ORDER ID
+                      </span>
+
+                      <h2>
+                        #{order.id}
+                      </h2>
+
+                    </div>
+
+                    <div className="order-date">
+
+                      {order.created_at
+                        ? new Date(
+                            order.created_at
+                          ).toLocaleDateString(
+                            "en-IN",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )
+                        : "N/A"}
+
+                    </div>
+
+                  </div>
+
+                  <div className="order-info">
+
+                    <div className="info-item">
+
+                      <span>
+                        User ID
+                      </span>
+
+                      <strong>
+                        {order.user_id}
+                      </strong>
+
+                    </div>
+
+                    <div className="info-item">
+
+                      <span>
+                        Total Amount
+                      </span>
+
+                      <strong className="amount">
+
+                        ₹
+                        {Number(
+                          order.total_amount
+                        ).toLocaleString(
+                          "en-IN"
+                        )}
+
+                      </strong>
+
+                    </div>
+
+                    <div className="info-item">
+
+                      <span>
+                        Payment
+                      </span>
+
+                      <strong
+                        className={
+                          isPaid
+                            ? "status paid"
+                            : "status pending"
+                        }
+                      >
+                        {order.payment_status}
+                      </strong>
+
+                    </div>
+
+                    <div className="info-item">
+
+                      <span>
+                        Order Status
+                      </span>
+
+                      <strong
+                        className={
+                          isConfirmed
+                            ? "status confirmed"
+                            : "status pending"
+                        }
+                      >
+                        {order.order_status}
+                      </strong>
+
+                    </div>
+
+                  </div>
+
+                  <div className="order-card-footer">
+
+                    <span>
+                      {isPaid
+                        ? "Payment completed successfully"
+                        : "Payment pending"}
+                    </span>
+
+                    <button
+                      className="details-btn"
+                      onClick={() =>
+                        navigate(
+                          `/orders/${order.id}`
+                        )
+                      }
+                    >
+                      View Details →
+                    </button>
+
+                  </div>
+
+                </div>
+              );
+            })}
+
+          </div>
+        )}
+
+      </div>
 
     </div>
-
   );
 }
 

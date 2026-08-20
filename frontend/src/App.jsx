@@ -1,4 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route
+} from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -8,10 +12,13 @@ import Orders from "./pages/Orders";
 import Dashboard from "./pages/Dashboard";
 import OrderDetails from "./pages/OrderDetails";
 import Payment from "./pages/Payment";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancelled from "./pages/PaymentCancelled";
 
 function App() {
   return (
     <BrowserRouter>
+
       <Routes>
 
         <Route
@@ -55,11 +62,22 @@ function App() {
         />
 
         <Route
+          path="/payment-success"
+          element={<PaymentSuccess />}
+        />
+
+        <Route
+          path="/payment-cancelled"
+          element={<PaymentCancelled />}
+        />
+
+        <Route
           path="/dashboard"
           element={<Dashboard />}
         />
 
       </Routes>
+
     </BrowserRouter>
   );
 }

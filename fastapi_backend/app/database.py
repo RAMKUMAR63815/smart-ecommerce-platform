@@ -1,9 +1,20 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+from .core.config import (
+    DB_USER,
+    DB_PASSWORD,
+    DB_HOST,
+    DB_PORT,
+    DB_NAME
+)
+
 
 DATABASE_URL = (
-    "mysql+pymysql://root:12345678@localhost:3306/ecommerce"
+    f"mysql+pymysql://"
+    f"{DB_USER}:{DB_PASSWORD}@"
+    f"{DB_HOST}:{DB_PORT}/"
+    f"{DB_NAME}"
 )
 
 
@@ -23,11 +34,12 @@ SessionLocal = sessionmaker(
 Base = declarative_base()
 
 
-# Database dependency
 def get_db():
+
     db = SessionLocal()
 
     try:
         yield db
+
     finally:
         db.close()

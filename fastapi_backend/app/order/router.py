@@ -4,15 +4,16 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Order, Cart, Product
 
+
 router = APIRouter(
     prefix="/orders",
     tags=["Orders"]
 )
 
 
-# =========================
+# =========================================================
 # DATABASE SESSION
-# =========================
+# =========================================================
 
 def get_db():
     db = SessionLocal()
@@ -23,9 +24,9 @@ def get_db():
         db.close()
 
 
-# =========================
+# =========================================================
 # CREATE ORDER FROM CART
-# =========================
+# =========================================================
 
 @router.post("/create")
 def create_order(
@@ -47,6 +48,7 @@ def create_order(
 
     total_amount = 0
 
+    # Calculate total
     for item in cart_items:
 
         product = (
@@ -61,23 +63,52 @@ def create_order(
                 detail=f"Product {item.product_id} not found"
             )
 
+        if product.stock < item.quantity:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Not enough stock for product {product.name}"
+            )
+
         total_amount += product.price * item.quantity
+
+    # =====================================================
+    # CREATE ORDER
+    # =====================================================
 
     order = Order(
         user_id=user_id,
         total_amount=total_amount,
-        status="Pending"
+        payment_status="Pending",
+        order_status="Pending"
     )
 
     db.add(order)
     db.commit()
     db.refresh(order)
 
-    # Clear cart
+    # =====================================================
+    # REDUCE PRODUCT STOCK
+    # =====================================================
+
+    for item in cart_items:
+
+        product = (
+            db.query(Product)
+            .filter(Product.id == item.product_id)
+            .first()
+        )
+
+        product.stock -= item.quantity
+
+    # =====================================================
+    # CLEAR CART
+    # =====================================================
+
     for item in cart_items:
         db.delete(item)
 
     db.commit()
+    db.refresh(order)
 
     return {
         "message": "Order created successfully",
@@ -85,14 +116,17 @@ def create_order(
             "id": order.id,
             "user_id": order.user_id,
             "total_amount": order.total_amount,
-            "status": order.status
+            "payment_status": order.payment_status,
+            "order_status": order.order_status,
+            "status": order.order_status,
+            "created_at": order.created_at
         }
     }
 
 
-# =========================
+# =========================================================
 # GET USER ORDERS
-# =========================
+# =========================================================
 
 @router.get("/")
 def get_orders(
@@ -107,20 +141,33 @@ def get_orders(
         .all()
     )
 
-    return [
-        {
+    result = []
+
+    for order in orders:
+
+        result.append({
             "id": order.id,
             "user_id": order.user_id,
             "total_amount": order.total_amount,
-            "status": order.status
-        }
-        for order in orders
-    ]
+
+            # Payment status
+            "payment_status": order.payment_status,
+
+            # Order status
+            "order_status": order.order_status,
+
+            # Frontend compatibility
+            "status": order.order_status,
+
+            "created_at": order.created_at
+        })
+
+    return result
 
 
-# =========================
+# =========================================================
 # GET SINGLE ORDER
-# =========================
+# =========================================================
 
 @router.get("/{order_id}")
 def get_order(
@@ -144,13 +191,19 @@ def get_order(
         "id": order.id,
         "user_id": order.user_id,
         "total_amount": order.total_amount,
-        "status": order.status
+        "payment_status": order.payment_status,
+        "order_status": order.order_status,
+
+        # Frontend compatibility
+        "status": order.order_status,
+
+        "created_at": order.created_at
     }
 
 
-# =========================
+# =========================================================
 # PAYMENT SUCCESS
-# =========================
+# =========================================================
 
 @router.put("/{order_id}/pay")
 def payment_success(
@@ -170,18 +223,27 @@ def payment_success(
             detail="Order Not Found"
         )
 
-    if order.status == "Paid":
+    # Already paid
+    if order.payment_status == "Paid":
+
         return {
             "message": "Order already paid",
             "order": {
                 "id": order.id,
                 "user_id": order.user_id,
                 "total_amount": order.total_amount,
-                "status": order.status
+                "payment_status": order.payment_status,
+                "order_status": order.order_status,
+                "status": order.order_status,
+                "created_at": order.created_at
             }
         }
 
-    order.status = "Paid"
+    # Update payment
+    order.payment_status = "Paid"
+
+    # Update order status
+    order.order_status = "Confirmed"
 
     db.commit()
     db.refresh(order)
@@ -192,6 +254,9 @@ def payment_success(
             "id": order.id,
             "user_id": order.user_id,
             "total_amount": order.total_amount,
-            "status": order.status
+            "payment_status": order.payment_status,
+            "order_status": order.order_status,
+            "status": order.order_status,
+            "created_at": order.created_at
         }
     }

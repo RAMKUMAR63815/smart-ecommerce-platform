@@ -11,6 +11,7 @@ function Cart() {
 
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -38,30 +39,22 @@ function Cart() {
 
       console.log("Cart response:", response.data);
 
-      // Backend returns:
-      // {
-      //   items: [],
-      //   cart_total: 0,
-      //   tax: 0,
-      //   grand_total: 0
-      // }
-
       setCartItems(
-        Array.isArray(response.data.items)
+        Array.isArray(response.data?.items)
           ? response.data.items
           : []
       );
 
       setCartTotal(
-        Number(response.data.cart_total || 0)
+        Number(response.data?.cart_total || 0)
       );
 
       setTax(
-        Number(response.data.tax || 0)
+        Number(response.data?.tax || 0)
       );
 
       setGrandTotal(
-        Number(response.data.grand_total || 0)
+        Number(response.data?.grand_total || 0)
       );
 
     } catch (error) {
@@ -92,7 +85,10 @@ function Cart() {
       await loadCart();
 
     } catch (error) {
-      console.error("Increase quantity error:", error);
+      console.error(
+        "Increase quantity error:",
+        error
+      );
 
       alert(
         error.response?.data?.detail ||
@@ -123,7 +119,10 @@ function Cart() {
       await loadCart();
 
     } catch (error) {
-      console.error("Decrease quantity error:", error);
+      console.error(
+        "Decrease quantity error:",
+        error
+      );
 
       alert(
         error.response?.data?.detail ||
@@ -150,7 +149,10 @@ function Cart() {
       await loadCart();
 
     } catch (error) {
-      console.error("Remove item error:", error);
+      console.error(
+        "Remove item error:",
+        error
+      );
 
       alert(
         error.response?.data?.detail ||
@@ -163,7 +165,7 @@ function Cart() {
   };
 
   // =========================================================
-  // PLACE ORDER
+  // START STRIPE CHECKOUT
   // =========================================================
 
   const placeOrder = async () => {
@@ -178,32 +180,73 @@ function Cart() {
     }
 
     try {
-      const response = await api.post(
-        `/orders/create?user_id=${userId}`
+      setCheckoutLoading(true);
+
+      console.log(
+        "Starting Stripe checkout..."
       );
 
-      const order = response.data?.order;
+      console.log(
+        "User ID:",
+        userId
+      );
 
-      if (order) {
-        alert(
-          `Order placed successfully!\nOrder ID: ${order.id}`
+      // IMPORTANT:
+      // Do NOT call /orders/create here.
+      //
+      // /checkout/ will:
+      // 1. Create the Order
+      // 2. Create the Payment
+      // 3. Create the Stripe Checkout Session
+
+      const response = await api.post(
+        `/checkout/?user_id=${userId}`
+      );
+
+      console.log(
+        "Checkout response:",
+        response.data
+      );
+
+      const checkoutUrl =
+        response.data?.checkout_url;
+
+      if (!checkoutUrl) {
+        console.error(
+          "Checkout URL missing:",
+          response.data
         );
 
-        navigate(`/orders/${order.id}`);
+        alert(
+          "Stripe checkout URL was not returned"
+        );
 
-      } else {
-        alert("Order placed successfully!");
-
-        navigate("/orders");
+        setCheckoutLoading(false);
+        return;
       }
 
-    } catch (error) {
-      console.error("Place order error:", error);
-
-      alert(
-        error.response?.data?.detail ||
-        "Failed to place order"
+      console.log(
+        "Redirecting to Stripe:",
+        checkoutUrl
       );
+
+      // Redirect to Stripe Checkout
+      window.location.href = checkoutUrl;
+
+    } catch (error) {
+      console.error(
+        "Checkout error:",
+        error
+      );
+
+      const message =
+        error.response?.data?.detail ||
+        error.message ||
+        "Unable to start checkout";
+
+      alert(message);
+
+      setCheckoutLoading(false);
     }
   };
 
@@ -221,7 +264,9 @@ function Cart() {
             🔐
           </div>
 
-          <h2>Please Login</h2>
+          <h2>
+            Please Login
+          </h2>
 
           <p>
             Login to view your shopping cart.
@@ -262,15 +307,11 @@ function Cart() {
   }
 
   // =========================================================
-  // CART PAGE
+  // PAGE
   // =========================================================
 
   return (
     <div className="cart-page">
-
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
 
       <div className="cart-header">
 
@@ -293,16 +334,14 @@ function Cart() {
 
         <button
           className="continue-shopping"
-          onClick={() => navigate("/products")}
+          onClick={() =>
+            navigate("/products")
+          }
         >
           ← Continue Shopping
         </button>
 
       </div>
-
-      {/* =====================================================
-          EMPTY CART
-      ===================================================== */}
 
       {cartItems.length === 0 ? (
 
@@ -321,7 +360,9 @@ function Cart() {
           </p>
 
           <button
-            onClick={() => navigate("/products")}
+            onClick={() =>
+              navigate("/products")
+            }
           >
             Start Shopping
           </button>
@@ -543,12 +584,15 @@ function Cart() {
             <button
               className="checkout-btn"
               onClick={placeOrder}
+              disabled={checkoutLoading}
             >
-              Place Order →
+              {checkoutLoading
+                ? "Opening Secure Checkout..."
+                : "Proceed to Secure Payment →"}
             </button>
 
             <div className="secure-cart">
-              🔒 Secure Checkout
+              🔒 Secure Stripe Checkout
             </div>
 
           </div>

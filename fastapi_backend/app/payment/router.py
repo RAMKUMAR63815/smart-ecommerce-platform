@@ -1,8 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException
+)
+
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.models import Order
+from app.models import Order, Payment
+
+
+# =========================================================
+# ROUTER
+# =========================================================
 
 router = APIRouter(
     prefix="/payment",
@@ -10,22 +20,24 @@ router = APIRouter(
 )
 
 
-# =========================
+# =========================================================
 # DATABASE SESSION
-# =========================
+# =========================================================
 
 def get_db():
+
     db = SessionLocal()
 
     try:
         yield db
+
     finally:
         db.close()
 
 
-# =========================
-# GET PAYMENT ORDER
-# =========================
+# =========================================================
+# GET PAYMENT / ORDER DETAILS
+# =========================================================
 
 @router.get("/{order_id}")
 def get_payment_order(
@@ -33,72 +45,108 @@ def get_payment_order(
     db: Session = Depends(get_db)
 ):
 
+    # =====================================================
+    # FIND ORDER
+    # =====================================================
+
     order = (
         db.query(Order)
-        .filter(Order.id == order_id)
+        .filter(
+            Order.id == order_id
+        )
         .first()
     )
 
     if not order:
+
         raise HTTPException(
             status_code=404,
             detail="Order Not Found"
         )
 
-    return {
-        "id": order.id,
-        "user_id": order.user_id,
-        "total_amount": order.total_amount,
-        "status": order.status
-    }
+    # =====================================================
+    # FIND PAYMENT
+    # =====================================================
 
-
-# =========================
-# COMPLETE PAYMENT
-# =========================
-
-@router.post("/{order_id}/pay")
-def complete_payment(
-    order_id: int,
-    db: Session = Depends(get_db)
-):
-
-    order = (
-        db.query(Order)
-        .filter(Order.id == order_id)
+    payment = (
+        db.query(Payment)
+        .filter(
+            Payment.order_id == order.id
+        )
+        .order_by(
+            Payment.id.desc()
+        )
         .first()
     )
 
-    if not order:
-        raise HTTPException(
-            status_code=404,
-            detail="Order Not Found"
-        )
-
-    # Prevent paying twice
-    if order.status == "Paid":
-        return {
-            "message": "Order is already paid",
-            "order": {
-                "id": order.id,
-                "user_id": order.user_id,
-                "total_amount": order.total_amount,
-                "status": order.status
-            }
-        }
-
-    # Change status
-    order.status = "Paid"
-
-    db.commit()
-    db.refresh(order)
+    # =====================================================
+    # RESPONSE
+    # =====================================================
 
     return {
-        "message": "Payment successful",
+
         "order": {
+
             "id": order.id,
+
             "user_id": order.user_id,
+
             "total_amount": order.total_amount,
-            "status": order.status
+
+            "payment_status": (
+                order.payment_status
+            ),
+
+            "order_status": (
+                order.order_status
+            ),
+
+            # Frontend compatibility
+            "status": (
+                order.order_status
+            ),
+
+            "created_at": (
+                order.created_at
+            )
+        },
+
+        "payment": {
+
+            "id": (
+                payment.id
+                if payment
+                else None
+            ),
+
+            "amount": (
+                payment.amount
+                if payment
+                else None
+            ),
+
+            "payment_method": (
+                payment.payment_method
+                if payment
+                else None
+            ),
+
+            "transaction_id": (
+                payment.transaction_id
+                if payment
+                else None
+            ),
+
+            "status": (
+                payment.status
+                if payment
+                else None
+            ),
+
+            "timestamp": (
+                payment.timestamp
+                if payment
+                else None
+            )
         }
     }

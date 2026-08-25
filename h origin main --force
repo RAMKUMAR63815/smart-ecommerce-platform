@@ -1,0 +1,41 @@
+[33mcommit 6393afd9fb3babbc74862f9f4a0422a1de2ad68a[m
+Author: Ramkumar <ramcse63815@gmail.com>
+Date:   Tue Aug 25 20:11:26 2026 +0530
+
+    Remove environment secrets
+
+[33mcommit 3a6d4d870218b249365ee05c520462ae98042111[m
+Author: Ramkumar <ramcse63815@gmail.com>
+Date:   Tue Aug 25 20:10:24 2026 +0530
+
+    Notify
+
+[33mcommit 1ef84bd34797b45883b2ee2f28b3f7b65d0cefbf[m
+Author: Ramkumar <ramcse63815@gmail.com>
+Date:   Tue Aug 25 20:10:02 2026 +0530
+
+    Remove secrets from repository
+
+[33mcommit 4fbc8dcae119565ac66c4861513cc9c3bb4a8f1c[m
+Author: Ramkumar <ramcse63815@gmail.com>
+Date:   Tue Aug 25 20:07:39 2026 +0530
+
+    Notification
+
+[33mcommit 70c44e479db2c047afa7ec65d66b6f982e61b5f9[m
+Author: Ramkumar <ramcse63815@gmail.com>
+Date:   Tue Aug 25 20:06:41 2026 +0530
+
+    Notification
+
+[33mcommit f88cc3dfe9452ba586ce61048094c1a0329daca3[m
+Author: Ramkumar <ramcse63815@gmail.com>
+Date:   Thu Aug 20 10:36:35 2026 +0530
+
+    Add checkout and Stripe integration
+
+[33mcommit f75c01fc899e63c15594dac564473c6001fb47d3[m
+Author: Ramkumar <ramcse63815@gmail.com>
+Date:   Thu Aug 13 14:57:32 2026 +0530
+
+    Initial Smart E-Commerce Platform submission

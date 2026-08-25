@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from app.websocket.websocket import send_cart_update
 
 from app.database import SessionLocal
 from app.models import Cart, Product
@@ -29,7 +30,7 @@ def get_db():
 # =========================================================
 
 @router.post("/add")
-def add_to_cart(
+async def add_to_cart(
     user_id: int,
     product_id: int,
     quantity: int = Query(default=1, ge=1),
@@ -105,6 +106,15 @@ def add_to_cart(
 
     db.commit()
     db.refresh(cart)
+
+    try:
+        await send_cart_update(
+        user_id=user_id,
+        cart_id=cart.id,
+        action="added"
+    )
+    except Exception as e:
+        print("Cart WebSocket failed:", e)  
 
     return {
         "message": "Added To Cart",
@@ -187,7 +197,7 @@ def view_cart(
 # =========================================================
 
 @router.put("/update/{cart_id}")
-def update_cart(
+async def update_cart(
     cart_id: int,
     quantity: int = Query(..., ge=1),
     db: Session = Depends(get_db)
@@ -261,6 +271,15 @@ def update_cart(
     db.commit()
     db.refresh(cart)
 
+    try:
+        await send_cart_update(
+        user_id=cart.user_id,
+        cart_id=cart.id,
+        action="updated"
+    )
+    except Exception as e:
+         print("Cart Update WebSocket failed:", e)
+
     return {
         "message": "Cart Updated Successfully",
         "cart_id": cart.id,
@@ -275,7 +294,7 @@ def update_cart(
 # =========================================================
 
 @router.delete("/remove/{cart_id}")
-def remove_cart(
+async def remove_cart(
     cart_id: int,
     db: Session = Depends(get_db)
 ):
@@ -313,10 +332,22 @@ def remove_cart(
     # -----------------------------------------------------
     # DELETE CART ITEM
     # -----------------------------------------------------
-
+    
+    user_id = cart.user_id
+    cart_item_id = cart.id
     db.delete(cart)
-
     db.commit()
+
+    try:
+        await send_cart_update(
+        user_id=user_id,
+        cart_id=cart_item_id,
+        action="removed"
+    )
+    except Exception as e:
+        print("Cart Remove WebSocket failed:", e)
+
+
 
     return {
         "message": "Removed Successfully",

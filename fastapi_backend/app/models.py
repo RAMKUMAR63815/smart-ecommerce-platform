@@ -7,7 +7,8 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Text,
-    DateTime
+    DateTime,
+    Boolean
 )
 
 from sqlalchemy.orm import relationship
@@ -53,6 +54,7 @@ class User(Base):
     )
 
     # Relationships
+
     carts = relationship(
         "Cart",
         back_populates="user",
@@ -61,6 +63,12 @@ class User(Base):
 
     orders = relationship(
         "Order",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
+    notifications = relationship(
+        "Notification",
         back_populates="user",
         cascade="all, delete-orphan"
     )
@@ -118,6 +126,7 @@ class Product(Base):
     )
 
     # Relationship
+
     carts = relationship(
         "Cart",
         back_populates="product",
@@ -158,6 +167,7 @@ class Cart(Base):
     )
 
     # Relationships
+
     user = relationship(
         "User",
         back_populates="carts"
@@ -233,6 +243,7 @@ class Order(Base):
     )
 
     # Relationships
+
     user = relationship(
         "User",
         back_populates="orders"
@@ -271,6 +282,7 @@ class Payment(Base):
     )
 
     # stripe / cod / upi / card
+
     payment_method = Column(
         String(50),
         default="stripe",
@@ -278,6 +290,7 @@ class Payment(Base):
     )
 
     # Stripe PaymentIntent ID / Checkout Session ID
+
     transaction_id = Column(
         String(255),
         nullable=True,
@@ -285,6 +298,7 @@ class Payment(Base):
     )
 
     # pending / paid / failed / cancelled
+
     status = Column(
         String(30),
         default="pending",
@@ -298,7 +312,58 @@ class Payment(Base):
     )
 
     # Relationship
+
     order = relationship(
         "Order",
         back_populates="payments"
+    )
+
+
+# =========================================================
+# NOTIFICATION MODEL
+# =========================================================
+
+class Notification(Base):
+
+    __tablename__ = "notifications"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False
+    )
+
+    type = Column(
+        String(50),
+        nullable=False
+    )
+
+    message = Column(
+        String(255),
+        nullable=False
+    )
+
+    read_status = Column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+
+    timestamp = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    # Relationship
+
+    user = relationship(
+        "User",
+        back_populates="notifications"
     )

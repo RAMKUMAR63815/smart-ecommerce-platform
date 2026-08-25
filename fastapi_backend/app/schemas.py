@@ -1,5 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
+from datetime import datetime
+
 
 
 # =========================================================
@@ -82,3 +84,14 @@ class CartResponse(BaseModel):
 class CheckoutRequest(BaseModel):
 
     user_id: int
+
+class NotificationResponse(BaseModel):
+    id: int
+    user_id: int
+    type: str
+    message: str
+    read_status: bool
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True

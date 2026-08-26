@@ -1,0 +1,5 @@
+$kind: collection
+name: Smart E-Commerce API
+description: ""
+variables:
+  baseUrl: /

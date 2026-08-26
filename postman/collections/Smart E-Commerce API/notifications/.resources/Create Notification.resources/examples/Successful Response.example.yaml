@@ -1,0 +1,22 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/notifications/?user_id=4705&type=string&message=string"
+  method: POST
+  headers:
+    Accept: application/json
+  queryParams:
+    user_id: "4705"
+    type: string
+    message: string
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: text
+    content: ""
+order: 1000

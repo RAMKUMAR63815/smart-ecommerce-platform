@@ -1,0 +1,49 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/cart/update/:cart_id?quantity=9217"
+method: PUT
+headers:
+  Accept: application/json
+queryParams:
+  - key: quantity
+    value: "9217"
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "title": "Quantity",
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+pathVariables:
+  - key: cart_id
+    value: "2480"
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "title": "Cart Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Update Cart.resources/examples
+order: 1000

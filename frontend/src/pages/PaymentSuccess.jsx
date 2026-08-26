@@ -1,89 +1,89 @@
-import { useEffect } from "react";
-import {
-  Link,
-  useSearchParams
-} from "react-router-dom";
+  import { useEffect } from "react";
+  import {
+    Link,
+    useSearchParams
+  } from "react-router-dom";
 
-import "./PaymentSuccess.css";
+  import "./PaymentSuccess.css";
 
-function PaymentSuccess() {
+  function PaymentSuccess() {
 
-  const [searchParams] =
-    useSearchParams();
+    const [searchParams] =
+      useSearchParams();
 
-  const sessionId =
-    searchParams.get(
-      "session_id"
-    );
+    const sessionId =
+      searchParams.get(
+        "session_id"
+      );
 
-  useEffect(() => {
+    useEffect(() => {
 
-    console.log(
-      "Stripe Session ID:",
-      sessionId
-    );
+      console.log(
+        "Stripe Session ID:",
+        sessionId
+      );
 
-  }, [sessionId]);
+    }, [sessionId]);
 
-  return (
+    return (
 
-    <div className="payment-result-page">
+      <div className="payment-result-page">
 
-      <div className="payment-result-card">
+        <div className="payment-result-card">
 
-        <div className="success-icon">
-          ✓
-        </div>
-
-        <h1>
-          Payment Successful!
-        </h1>
-
-        <p className="payment-message">
-          Your Stripe payment was completed
-          successfully. Your order is being
-          confirmed by the server.
-        </p>
-
-        {sessionId && (
-
-          <div className="session-box">
-
-            <span>
-              Transaction ID
-            </span>
-
-            <p>
-              {sessionId}
-            </p>
-
+          <div className="success-icon">
+            ✓
           </div>
 
-        )}
+          <h1>
+            Payment Successful!
+          </h1>
 
-        <div className="payment-actions">
+          <p className="payment-message">
+            Your Stripe payment was completed
+            successfully. Your order is being
+            confirmed by the server.
+          </p>
 
-          <Link
-            to="/orders"
-            className="primary-button"
-          >
-            View My Orders
-          </Link>
+          {sessionId && (
 
-          <Link
-            to="/products"
-            className="secondary-button"
-          >
-            Continue Shopping
-          </Link>
+            <div className="session-box">
+
+              <span>
+                Transaction ID
+              </span>
+
+              <p>
+                {sessionId}
+              </p>
+
+            </div>
+
+          )}
+
+          <div className="payment-actions">
+
+            <Link
+              to="/orders"
+              className="primary-button"
+            >
+              View My Orders
+            </Link>
+
+            <Link
+              to="/products"
+              className="secondary-button"
+            >
+              Continue Shopping
+            </Link>
+
+          </div>
 
         </div>
 
       </div>
 
-    </div>
+    );
+  }
 
-  );
-}
-
-export default PaymentSuccess;
+  export default PaymentSuccess;

@@ -1,0 +1,66 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/products/"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "string",
+      "description": "string",
+      "price": 2017.0975156716393,
+      "category": "string",
+      "stock": 4058,
+      "images": "string"
+    }
+  $type: |-
+    {
+      "title": "ProductCreate",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name"
+        },
+        "description": {
+          "type": "string",
+          "title": "Description"
+        },
+        "price": {
+          "type": "number",
+          "title": "Price"
+        },
+        "category": {
+          "type": "string",
+          "title": "Category"
+        },
+        "stock": {
+          "type": "integer",
+          "minimum": 0,
+          "title": "Stock"
+        },
+        "images": {
+          "type": "string",
+          "title": "Images"
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "price",
+        "category",
+        "stock",
+        "images"
+      ]
+    }
+auth:
+  type: oauth2
+  credentials:
+    accessTokenUrl: /auth/login
+    grant_type: password_credentials
+settings: {}
+examples: ./.resources/Create Product.resources/examples
+order: 1000

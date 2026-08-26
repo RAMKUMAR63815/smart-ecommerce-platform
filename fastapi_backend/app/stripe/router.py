@@ -4,11 +4,25 @@ from fastapi import APIRouter, Request, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.models import Order, Payment
+
+from app.models import (
+    Order,
+    Payment,
+    User,
+    Notification
+)
+
 from app.core.config import (
     STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET,
 )
+
+from app.websocket.websocket import (
+    send_notification,
+    send_order_update
+)
+
+from app.services.email_service import send_email
 
 
 # =========================================================
@@ -66,7 +80,7 @@ async def stripe_webhook(request: Request):
 
         raise HTTPException(
             status_code=400,
-            detail="Missing Stripe signature",
+            detail="Missing Stripe signature"
         )
 
     # =====================================================
@@ -78,7 +92,7 @@ async def stripe_webhook(request: Request):
         event = stripe.Webhook.construct_event(
             payload,
             signature,
-            STRIPE_WEBHOOK_SECRET,
+            STRIPE_WEBHOOK_SECRET
         )
 
     except ValueError as e:
@@ -90,7 +104,7 @@ async def stripe_webhook(request: Request):
 
         raise HTTPException(
             status_code=400,
-            detail="Invalid webhook payload",
+            detail="Invalid webhook payload"
         )
 
     except stripe.error.SignatureVerificationError as e:
@@ -102,7 +116,7 @@ async def stripe_webhook(request: Request):
 
         raise HTTPException(
             status_code=400,
-            detail="Invalid Stripe signature",
+            detail="Invalid Stripe signature"
         )
 
     except Exception as e:
@@ -114,17 +128,11 @@ async def stripe_webhook(request: Request):
 
         raise HTTPException(
             status_code=400,
-            detail="Webhook verification failed",
+            detail="Webhook verification failed"
         )
 
     # =====================================================
-    # IMPORTANT
-    # DO NOT USE:
-    # event.get(...)
-    # event.to_dict_recursive()
-    #
-    # Use Stripe object indexing:
-    # event["type"]
+    # 4. EVENT TYPE
     # =====================================================
 
     event_type = event["type"]
@@ -135,7 +143,7 @@ async def stripe_webhook(request: Request):
     )
 
     # =====================================================
-    # 4. IGNORE NON-CHECKOUT EVENTS
+    # 5. IGNORE OTHER EVENTS
     # =====================================================
 
     if event_type != "checkout.session.completed":
@@ -150,7 +158,7 @@ async def stripe_webhook(request: Request):
         }
 
     # =====================================================
-    # 5. GET CHECKOUT SESSION
+    # 6. CHECKOUT SESSION
     # =====================================================
 
     session = event["data"]["object"]
@@ -159,7 +167,6 @@ async def stripe_webhook(request: Request):
     print("CHECKOUT SESSION")
     print("----------------------------------------")
 
-    # StripeObject supports [] access
     session_id = session["id"]
 
     payment_status = session["payment_status"]
@@ -189,7 +196,7 @@ async def stripe_webhook(request: Request):
     )
 
     # =====================================================
-    # 6. GET METADATA
+    # 7. CHECK METADATA
     # =====================================================
 
     if not metadata:
@@ -203,10 +210,17 @@ async def stripe_webhook(request: Request):
             "message": "Metadata missing"
         }
 
-    # Stripe metadata behaves like a mapping
-    order_id = metadata["order_id"] if "order_id" in metadata else None
+    order_id = (
+        metadata["order_id"]
+        if "order_id" in metadata
+        else None
+    )
 
-    payment_id = metadata["payment_id"] if "payment_id" in metadata else None
+    payment_id = (
+        metadata["payment_id"]
+        if "payment_id" in metadata
+        else None
+    )
 
     print(
         "Order ID:",
@@ -217,10 +231,6 @@ async def stripe_webhook(request: Request):
         "Payment ID:",
         payment_id
     )
-
-    # =====================================================
-    # 7. CHECK METADATA
-    # =====================================================
 
     if not order_id:
 
@@ -267,18 +277,14 @@ async def stripe_webhook(request: Request):
         }
 
     # =====================================================
-    # 9. CHECK PAYMENT STATUS
+    # 9. PAYMENT STATUS
     # =====================================================
-
-    print(
-        "Stripe payment status:",
-        payment_status
-    )
 
     if payment_status != "paid":
 
         print(
-            "Payment is not completed yet"
+            "Payment is not completed:",
+            payment_status
         )
 
         return {
@@ -287,7 +293,7 @@ async def stripe_webhook(request: Request):
         }
 
     # =====================================================
-    # 10. OPEN DATABASE
+    # 10. DATABASE
     # =====================================================
 
     db: Session = SessionLocal()
@@ -357,10 +363,44 @@ async def stripe_webhook(request: Request):
         )
 
         # =================================================
+        # GET USER
+        # =================================================
+
+        user = (
+            db.query(User)
+            .filter(
+                User.id == order.user_id
+            )
+            .first()
+        )
+
+        # =================================================
+        # PREVENT DUPLICATE WEBHOOK PROCESSING
+        # =================================================
+
+        already_paid = (
+            order.payment_status == "Paid"
+            and payment.status == "Paid"
+        )
+
+        if already_paid:
+
+            print(
+                f"Order #{order.id} is already marked as paid."
+            )
+
+            return {
+                "received": True,
+                "message": "Payment already processed",
+                "order_id": order.id,
+                "payment_id": payment.id
+            }
+
+        # =================================================
         # UPDATE PAYMENT
         # =================================================
 
-        payment.status = "paid"
+        payment.status = "Paid"
 
         payment.transaction_id = (
             payment_intent
@@ -371,17 +411,18 @@ async def stripe_webhook(request: Request):
         # UPDATE ORDER
         # =================================================
 
-        order.payment_status = "paid"
+        # IMPORTANT:
+        # Keep same capitalization used
+        # by your existing /payment/{order_id}/pay
+        # endpoint.
 
-        order.order_status = "confirmed"
+        order.payment_status = "Paid"
+
+        order.order_status = "Confirmed"
 
         # =================================================
-        # COMMIT DATABASE
+        # COMMIT PAYMENT / ORDER
         # =================================================
-
-        print(
-            "COMMITTING DATABASE..."
-        )
 
         db.commit()
 
@@ -389,12 +430,8 @@ async def stripe_webhook(request: Request):
 
         db.refresh(payment)
 
-        # =================================================
-        # VERIFY
-        # =================================================
-
         print("----------------------------------------")
-        print("DATABASE UPDATED SUCCESSFULLY")
+        print("DATABASE PAYMENT UPDATED")
         print("----------------------------------------")
 
         print(
@@ -403,12 +440,12 @@ async def stripe_webhook(request: Request):
         )
 
         print(
-            "Order payment_status:",
+            "Payment Status:",
             order.payment_status
         )
 
         print(
-            "Order order_status:",
+            "Order Status:",
             order.order_status
         )
 
@@ -418,7 +455,7 @@ async def stripe_webhook(request: Request):
         )
 
         print(
-            "Payment status:",
+            "Payment Status:",
             payment.status
         )
 
@@ -427,15 +464,157 @@ async def stripe_webhook(request: Request):
             payment.transaction_id
         )
 
+        # =================================================
+        # DATABASE NOTIFICATION
+        # =================================================
+
+        notification_message = (
+            f"Payment successful for order #{order.id}."
+        )
+
+        notification = Notification(
+            user_id=order.user_id,
+            type="payment",
+            message=notification_message,
+            read_status=False
+        )
+
+        db.add(notification)
+
+        db.commit()
+
+        db.refresh(notification)
+
+        print(
+            "Database notification created:",
+            notification.id
+        )
+
+        # =================================================
+        # WEBSOCKET ORDER UPDATE
+        # =================================================
+
+        websocket_sent = False
+
+        try:
+
+            websocket_sent = await send_order_update(
+                user_id=order.user_id,
+                order_id=order.id,
+                status=order.order_status
+            )
+
+            print(
+                "Stripe order WebSocket result:",
+                websocket_sent
+            )
+
+        except Exception as e:
+
+            print(
+                "Stripe order WebSocket failed:",
+                e
+            )
+
+        # =================================================
+        # WEBSOCKET NOTIFICATION
+        # =================================================
+
+        notification_websocket_sent = False
+
+        try:
+
+            notification_websocket_sent = (
+                await send_notification(
+                    user_id=order.user_id,
+                    notification_type="payment",
+                    message=notification_message,
+                    notification_id=notification.id
+                )
+            )
+
+            print(
+                "Stripe notification WebSocket result:",
+                notification_websocket_sent
+            )
+
+        except Exception as e:
+
+            print(
+                "Stripe notification WebSocket failed:",
+                e
+            )
+
+        # =================================================
+        # EMAIL
+        # =================================================
+
+        email_sent = False
+
+        if user and user.email:
+
+            try:
+
+                send_email(
+                    to_email=user.email,
+                    subject=(
+                        "Smart Ecommerce - "
+                        f"Payment Successful #{order.id}"
+                    ),
+                    body=notification_message
+                )
+
+                email_sent = True
+
+                print(
+                    "Stripe payment email sent successfully"
+                )
+
+            except Exception as e:
+
+                print(
+                    "Stripe payment email failed:",
+                    e
+                )
+
+        # =================================================
+        # FINAL RESPONSE
+        # =================================================
+
+        print("----------------------------------------")
+        print("STRIPE PAYMENT PROCESS COMPLETED")
         print("----------------------------------------")
 
         return {
+
             "received": True,
-            "message": "Payment updated successfully",
-            "order_id": order.id,
-            "payment_id": payment.id,
-            "payment_status": payment.status,
-            "order_status": order.order_status,
+
+            "message":
+                "Payment updated successfully",
+
+            "order_id":
+                order.id,
+
+            "payment_id":
+                payment.id,
+
+            "payment_status":
+                order.payment_status,
+
+            "order_status":
+                order.order_status,
+
+            "notification_id":
+                notification.id,
+
+            "websocket_sent":
+                websocket_sent,
+
+            "notification_websocket_sent":
+                notification_websocket_sent,
+
+            "email_sent":
+                email_sent
         }
 
     except Exception as e:
@@ -443,7 +622,7 @@ async def stripe_webhook(request: Request):
         db.rollback()
 
         print("----------------------------------------")
-        print("DATABASE UPDATE ERROR")
+        print("STRIPE DATABASE UPDATE ERROR")
         print("----------------------------------------")
 
         print(
@@ -460,7 +639,10 @@ async def stripe_webhook(request: Request):
 
         raise HTTPException(
             status_code=500,
-            detail=f"Database update failed: {str(e)}",
+            detail=(
+                "Database update failed: "
+                f"{str(e)}"
+            )
         )
 
     finally:

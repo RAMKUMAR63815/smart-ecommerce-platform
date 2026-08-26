@@ -1,8 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/analytics/"
-method: GET
-headers:
-  Accept: application/json
-settings: {}
-examples: ./.resources/Analytics.resources/examples
-order: 1000

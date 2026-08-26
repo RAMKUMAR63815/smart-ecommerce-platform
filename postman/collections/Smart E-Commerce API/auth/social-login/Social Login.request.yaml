@@ -1,0 +1,39 @@
+$kind: http-request
+description: |-
+  Google/Facebook
+      ↓
+  Auth0
+      ↓
+  Verify Token
+      ↓
+  Create User
+      ↓
+  Return JWT
+url: "{{baseUrl}}/auth/social-login?token=string"
+method: POST
+headers:
+  Accept: application/json
+queryParams:
+  - key: token
+    value: string
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Social Login.resources/examples
+order: 1000

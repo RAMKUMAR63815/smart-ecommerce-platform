@@ -1,0 +1,24 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/products/?category=string&min_price=1253.8182198323543&max_price=1253.8182198323543&min_popularity=5906&in_stock=false"
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    category: string
+    min_price: "1253.8182198323543"
+    max_price: "1253.8182198323543"
+    min_popularity: "5906"
+    in_stock: "false"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: text
+    content: ""
+order: 1000

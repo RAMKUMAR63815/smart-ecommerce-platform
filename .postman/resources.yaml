@@ -1,0 +1,7 @@
+resourceNameMappings:
+  specs:
+    - ../postman/specs/Smart E-Commerce Platform/openapi.json: Smart E-Commerce Platform
+    - ../postman/Smart-E-Commerce-API.json: Smart-E-Commerce-API.json
+localResources:
+  specs:
+    - ../C:/Fullstack developer/smart_ecommerce/postman/Smart-E-Commerce-API.json

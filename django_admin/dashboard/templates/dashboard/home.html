@@ -1,91 +1,216 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Smart E-Commerce Admin</title>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Ecommerce Admin Dashboard</title>
 
     <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
+
             margin: 0;
-            font-family: Arial, sans-serif;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
             background: #f4f6f9;
+
         }
 
         .header {
-            background: #1f2937;
+
+            background: #212529;
+
             color: white;
-            padding: 20px;
+
+            padding: 20px 30px;
+
+        }
+
+        .header h1 {
+
+            margin: 0;
+
         }
 
         .container {
+
             padding: 30px;
+
         }
 
         .cards {
+
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(220px, 1fr)
+                );
+
             gap: 20px;
+
         }
 
         .card {
+
             background: white;
+
             padding: 25px;
+
             border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+            box-shadow:
+                0 2px 8px
+                rgba(0, 0, 0, 0.1);
+
         }
 
-        .card h2 {
+        .card h3 {
+
             margin-top: 0;
+
+            color: #555;
+
         }
 
-        a {
-            text-decoration: none;
-            color: #2563eb;
+        .number {
+
+            font-size: 35px;
+
+            font-weight: bold;
+
+            margin: 10px 0;
+
         }
+
+        .admin-link {
+
+            display: inline-block;
+
+            margin-top: 30px;
+
+            padding: 12px 20px;
+
+            background: #007bff;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 6px;
+
+        }
+
+        .admin-link:hover {
+
+            background: #0056b3;
+
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
-<div class="header">
-    <h1>Smart E-Commerce Admin Dashboard</h1>
-</div>
 
-<div class="container">
+    <div class="header">
 
-    <h2>Dashboard</h2>
-
-    <div class="cards">
-
-        <div class="card">
-            <h2>Users</h2>
-            <p>Manage customers and users.</p>
-            <a href="/admin/dashboard/users/">View Users</a>
-        </div>
-
-        <div class="card">
-            <h2>Products</h2>
-            <p>Manage products and stock.</p>
-            <a href="/admin/dashboard/products/">View Products</a>
-        </div>
-
-        <div class="card">
-            <h2>Orders</h2>
-            <p>Manage customer orders.</p>
-            <a href="/admin/dashboard/orders/">View Orders</a>
-        </div>
-
-        <div class="card">
-            <h2>Cart</h2>
-            <p>View customer cart items.</p>
-            <a href="/admin/dashboard/cart/">View Cart</a>
-        </div>
+        <h1>
+            Smart Ecommerce Admin Dashboard
+        </h1>
 
     </div>
 
-</div>
+
+    <div class="container">
+
+
+        <div class="cards">
+
+
+            <div class="card">
+
+                <h3>
+                    Total Users
+                </h3>
+
+                <div class="number">
+                    {{ total_users }}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Total Products
+                </h3>
+
+                <div class="number">
+                    {{ total_products }}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Cart Items
+                </h3>
+
+                <div class="number">
+                    {{ total_cart_items }}
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>
+                    Total Orders
+                </h3>
+
+                <div class="number">
+                    {{ total_orders }}
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <a
+            href="/admin/"
+            class="admin-link"
+        >
+            Open Django Admin
+        </a>
+
+
+    </div>
+
 
 </body>
+
 </html>

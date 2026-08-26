@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from sqlalchemy import func
+
 from app.database import get_db
+
 from app.models import (
     Order,
+    OrderItem,
     Cart,
     Product,
     User,
@@ -36,10 +40,12 @@ def send_order_email(
 ):
 
     if not user or not user.email:
+
         print(
             f"Email skipped for order #{order_id}: "
             "User/email not available"
         )
+
         return False
 
     try:
@@ -105,6 +111,7 @@ async def create_order(
     print("User ID:", user_id)
     print("=" * 70)
 
+
     # -----------------------------------------------------
     # CHECK USER
     # -----------------------------------------------------
@@ -121,6 +128,7 @@ async def create_order(
             status_code=404,
             detail="User not found"
         )
+
 
     # -----------------------------------------------------
     # GET CART
@@ -139,9 +147,11 @@ async def create_order(
             detail="Cart is empty"
         )
 
+
     total_amount = 0
 
     products = []
+
 
     # -----------------------------------------------------
     # CHECK PRODUCTS AND STOCK
@@ -159,6 +169,7 @@ async def create_order(
                 )
             )
 
+
         product = (
             db.query(Product)
             .filter(Product.id == item.product_id)
@@ -175,6 +186,7 @@ async def create_order(
                 )
             )
 
+
         if product.stock < item.quantity:
 
             raise HTTPException(
@@ -187,13 +199,16 @@ async def create_order(
                 )
             )
 
+
         total_amount += (
             product.price * item.quantity
         )
 
+
         products.append(
             (item, product)
         )
+
 
     # -----------------------------------------------------
     # CREATE ORDER
@@ -216,6 +231,54 @@ async def create_order(
         f"Order created: #{order.id}"
     )
 
+
+    # =====================================================
+    # CREATE ORDER ITEMS
+    # =====================================================
+    #
+    # IMPORTANT:
+    #
+    # Cart items will be deleted later.
+    #
+    # Therefore we permanently save:
+    #
+    # order_id
+    # product_id
+    # quantity
+    # price
+    #
+    # This allows analytics to calculate:
+    #
+    # Top-selling products
+    # Product quantity sold
+    # Product sales
+    #
+    # =====================================================
+
+    for item, product in products:
+
+        order_item = OrderItem(
+
+            order_id=order.id,
+
+            product_id=product.id,
+
+            quantity=item.quantity,
+
+            price=product.price
+        )
+
+        db.add(order_item)
+
+
+    db.commit()
+
+
+    print(
+        f"Order items created for order #{order.id}"
+    )
+
+
     # -----------------------------------------------------
     # REDUCE STOCK
     # -----------------------------------------------------
@@ -223,6 +286,7 @@ async def create_order(
     for item, product in products:
 
         product.stock -= item.quantity
+
 
     # -----------------------------------------------------
     # CLEAR CART
@@ -232,9 +296,11 @@ async def create_order(
 
         db.delete(item)
 
+
     db.commit()
 
     db.refresh(order)
+
 
     # =====================================================
     # DATABASE NOTIFICATION
@@ -245,17 +311,24 @@ async def create_order(
         "has been created successfully."
     )
 
+
     notification = create_db_notification(
+
         db=db,
+
         user_id=user_id,
+
         notification_type="order",
+
         message=notification_message
     )
+
 
     print(
         f"Database notification created: "
         f"#{notification.id}"
     )
+
 
     # =====================================================
     # WEBSOCKET ORDER UPDATE
@@ -266,8 +339,11 @@ async def create_order(
     try:
 
         websocket_sent = await send_order_update(
+
             user_id=user_id,
+
             order_id=order.id,
+
             status=order.order_status
         )
 
@@ -283,6 +359,7 @@ async def create_order(
             e
         )
 
+
     # =====================================================
     # WEBSOCKET NOTIFICATION
     # =====================================================
@@ -292,10 +369,15 @@ async def create_order(
     try:
 
         notification_websocket_sent = (
+
             await send_notification(
+
                 user_id=user_id,
+
                 notification_type="order",
+
                 message=notification_message,
+
                 notification_id=notification.id
             )
         )
@@ -312,19 +394,25 @@ async def create_order(
             e
         )
 
+
     # =====================================================
     # EMAIL
     # =====================================================
 
     email_sent = send_order_email(
+
         user=user,
+
         order_id=order.id,
+
         subject=(
             f"Smart Ecommerce - "
             f"Order #{order.id} Created"
         ),
+
         message=notification_message
     )
+
 
     # =====================================================
     # RESPONSE
@@ -337,9 +425,11 @@ async def create_order(
 
         "order": {
 
-            "id": order.id,
+            "id":
+                order.id,
 
-            "user_id": order.user_id,
+            "user_id":
+                order.user_id,
 
             "total_amount":
                 order.total_amount,
@@ -374,18 +464,30 @@ async def create_order(
 
 @router.get("/")
 def get_orders(
+
     user_id: int,
+
     db: Session = Depends(get_db)
 ):
 
     orders = (
+
         db.query(Order)
-        .filter(Order.user_id == user_id)
-        .order_by(Order.id.desc())
+
+        .filter(
+            Order.user_id == user_id
+        )
+
+        .order_by(
+            Order.id.desc()
+        )
+
         .all()
     )
 
+
     result = []
+
 
     for order in orders:
 
@@ -413,6 +515,7 @@ def get_orders(
                 order.created_at
         })
 
+
     return result
 
 
@@ -422,22 +525,33 @@ def get_orders(
 
 @router.get("/{order_id}")
 def get_order(
+
     order_id: int,
+
     db: Session = Depends(get_db)
 ):
 
     order = (
+
         db.query(Order)
-        .filter(Order.id == order_id)
+
+        .filter(
+            Order.id == order_id
+        )
+
         .first()
     )
+
 
     if not order:
 
         raise HTTPException(
+
             status_code=404,
+
             detail="Order Not Found"
         )
+
 
     return {
 
@@ -470,7 +584,9 @@ def get_order(
 
 @router.put("/{order_id}/pay")
 async def payment_success(
+
     order_id: int,
+
     db: Session = Depends(get_db)
 ):
 
@@ -480,27 +596,38 @@ async def payment_success(
     print("Order ID:", order_id)
     print("=" * 70)
 
+
     # -----------------------------------------------------
     # FIND ORDER
     # -----------------------------------------------------
 
     order = (
+
         db.query(Order)
-        .filter(Order.id == order_id)
+
+        .filter(
+            Order.id == order_id
+        )
+
         .first()
     )
+
 
     if not order:
 
         raise HTTPException(
+
             status_code=404,
+
             detail="Order Not Found"
         )
+
 
     print(
         "Order user ID:",
         order.user_id
     )
+
 
     # -----------------------------------------------------
     # ALREADY PAID
@@ -551,6 +678,7 @@ async def payment_success(
                 False
         }
 
+
     # -----------------------------------------------------
     # UPDATE PAYMENT
     # -----------------------------------------------------
@@ -559,9 +687,11 @@ async def payment_success(
 
     order.order_status = "Confirmed"
 
+
     db.commit()
 
     db.refresh(order)
+
 
     print(
         f"Order #{order.id} updated:"
@@ -577,42 +707,61 @@ async def payment_success(
         order.order_status
     )
 
+
     # -----------------------------------------------------
     # GET USER
     # -----------------------------------------------------
 
     user = (
+
         db.query(User)
-        .filter(User.id == order.user_id)
+
+        .filter(
+            User.id == order.user_id
+        )
+
         .first()
     )
+
 
     if not user:
 
         raise HTTPException(
+
             status_code=404,
+
             detail="User not found"
         )
+
 
     print(
         "User email:",
         user.email
     )
 
+
     # =====================================================
     # DATABASE NOTIFICATION
     # =====================================================
 
     notification_message = (
-        f"Payment successful for order #{order.id}."
+
+        f"Payment successful for "
+        f"order #{order.id}."
     )
 
+
     notification = create_db_notification(
+
         db=db,
+
         user_id=order.user_id,
+
         notification_type="payment",
+
         message=notification_message
     )
+
 
     print()
     print(
@@ -624,24 +773,31 @@ async def payment_success(
         notification.id
     )
 
+
     # =====================================================
     # WEBSOCKET ORDER UPDATE
     # =====================================================
 
     websocket_sent = False
 
+
     try:
 
         websocket_sent = await send_order_update(
+
             user_id=order.user_id,
+
             order_id=order.id,
+
             status=order.order_status
         )
+
 
         print(
             "Payment order WebSocket result:",
             websocket_sent
         )
+
 
     except Exception as e:
 
@@ -650,27 +806,36 @@ async def payment_success(
             e
         )
 
+
     # =====================================================
     # WEBSOCKET NOTIFICATION
     # =====================================================
 
     notification_websocket_sent = False
 
+
     try:
 
         notification_websocket_sent = (
+
             await send_notification(
+
                 user_id=order.user_id,
+
                 notification_type="payment",
+
                 message=notification_message,
+
                 notification_id=notification.id
             )
         )
+
 
         print(
             "Payment notification WebSocket result:",
             notification_websocket_sent
         )
+
 
     except Exception as e:
 
@@ -679,19 +844,26 @@ async def payment_success(
             e
         )
 
+
     # =====================================================
     # EMAIL
     # =====================================================
 
     email_sent = send_order_email(
+
         user=user,
+
         order_id=order.id,
+
         subject=(
+
             f"Smart Ecommerce - "
             f"Payment Successful #{order.id}"
         ),
+
         message=notification_message
     )
+
 
     # =====================================================
     # FINAL RESPONSE
@@ -743,8 +915,11 @@ async def payment_success(
 
 @router.put("/{order_id}/status")
 async def update_order_status(
+
     order_id: int,
+
     status: str,
+
     db: Session = Depends(get_db)
 ):
 
@@ -757,39 +932,57 @@ async def update_order_status(
     )
     print("=" * 70)
 
+
     # -----------------------------------------------------
     # FIND ORDER
     # -----------------------------------------------------
 
     order = (
+
         db.query(Order)
-        .filter(Order.id == order_id)
+
+        .filter(
+            Order.id == order_id
+        )
+
         .first()
     )
+
 
     if not order:
 
         raise HTTPException(
+
             status_code=404,
+
             detail="Order Not Found"
         )
+
 
     # -----------------------------------------------------
     # VALID STATUSES
     # -----------------------------------------------------
 
     valid_statuses = [
+
         "Pending",
+
         "Confirmed",
+
         "Shipped",
+
         "Delivered",
+
         "Cancelled"
     ]
+
 
     if status not in valid_statuses:
 
         raise HTTPException(
+
             status_code=400,
+
             detail=(
                 "Invalid status. "
                 "Use: Pending, Confirmed, Shipped, "
@@ -797,52 +990,73 @@ async def update_order_status(
             )
         )
 
+
     # -----------------------------------------------------
     # UPDATE STATUS
     # -----------------------------------------------------
 
     order.order_status = status
 
+
     db.commit()
 
     db.refresh(order)
+
 
     # -----------------------------------------------------
     # GET USER
     # -----------------------------------------------------
 
     user = (
+
         db.query(User)
-        .filter(User.id == order.user_id)
+
+        .filter(
+            User.id == order.user_id
+        )
+
         .first()
     )
+
 
     if not user:
 
         raise HTTPException(
+
             status_code=404,
+
             detail="User not found"
         )
+
 
     # =====================================================
     # DATABASE NOTIFICATION
     # =====================================================
 
     notification_message = (
-        f"Your order #{order.id} is now {status}."
+
+        f"Your order #{order.id} "
+        f"is now {status}."
     )
 
+
     notification = create_db_notification(
+
         db=db,
+
         user_id=order.user_id,
+
         notification_type="order",
+
         message=notification_message
     )
+
 
     print(
         "Database notification created:",
         notification.id
     )
+
 
     # =====================================================
     # WEBSOCKET ORDER UPDATE
@@ -850,18 +1064,24 @@ async def update_order_status(
 
     websocket_sent = False
 
+
     try:
 
         websocket_sent = await send_order_update(
+
             user_id=order.user_id,
+
             order_id=order.id,
+
             status=order.order_status
         )
+
 
         print(
             "Status WebSocket result:",
             websocket_sent
         )
+
 
     except Exception as e:
 
@@ -870,27 +1090,36 @@ async def update_order_status(
             e
         )
 
+
     # =====================================================
     # WEBSOCKET NOTIFICATION
     # =====================================================
 
     notification_websocket_sent = False
 
+
     try:
 
         notification_websocket_sent = (
+
             await send_notification(
+
                 user_id=order.user_id,
+
                 notification_type="order",
+
                 message=notification_message,
+
                 notification_id=notification.id
             )
         )
+
 
         print(
             "Status notification WebSocket result:",
             notification_websocket_sent
         )
+
 
     except Exception as e:
 
@@ -899,6 +1128,7 @@ async def update_order_status(
             e
         )
 
+
     # =====================================================
     # EMAIL MESSAGE
     # =====================================================
@@ -906,55 +1136,72 @@ async def update_order_status(
     if status == "Shipped":
 
         email_message = (
+
             f"Your order #{order.id} "
             "has been shipped."
         )
 
+
     elif status == "Delivered":
 
         email_message = (
+
             f"Your order #{order.id} "
             "has been delivered."
         )
 
+
     elif status == "Cancelled":
 
         email_message = (
+
             f"Your order #{order.id} "
             "has been cancelled."
         )
 
+
     elif status == "Confirmed":
 
         email_message = (
+
             f"Your order #{order.id} "
             "has been confirmed."
         )
 
+
     elif status == "Pending":
 
         email_message = (
+
             f"Your order #{order.id} "
             "is now pending."
         )
 
+
     else:
 
         email_message = notification_message
+
 
     # =====================================================
     # EMAIL
     # =====================================================
 
     email_sent = send_order_email(
+
         user=user,
+
         order_id=order.id,
+
         subject=(
+
             f"Smart Ecommerce - "
             f"Order #{order.id} {status}"
         ),
+
         message=email_message
     )
+
 
     # =====================================================
     # RESPONSE
@@ -999,3 +1246,106 @@ async def update_order_status(
             notification_websocket_sent
     }
 
+
+# =========================================================
+# TOP-SELLING PRODUCTS
+# =========================================================
+#
+# Returns the products with the highest quantity sold.
+#
+# Only PAID orders are included.
+#
+# Example response:
+#
+# [
+#   {
+#       "product_id": 1,
+#       "product_name": "Laptop",
+#       "quantity_sold": 25
+#   }
+# ]
+#
+# =========================================================
+
+@router.get("/analytics/top-selling")
+def top_selling_products(
+
+    db: Session = Depends(get_db)
+):
+
+    results = (
+
+        db.query(
+
+            Product.id,
+
+            Product.name,
+
+            func.sum(
+                OrderItem.quantity
+            ).label("total_quantity")
+        )
+
+        .join(
+
+            OrderItem,
+
+            OrderItem.product_id == Product.id
+        )
+
+        .join(
+
+            Order,
+
+            Order.id == OrderItem.order_id
+        )
+
+        .filter(
+
+            Order.payment_status.ilike("Paid")
+        )
+
+        .group_by(
+
+            Product.id,
+
+            Product.name
+        )
+
+        .order_by(
+
+            func.sum(
+                OrderItem.quantity
+            ).desc()
+        )
+
+        .limit(10)
+
+        .all()
+    )
+
+
+    return [
+
+        {
+
+            "product_id":
+                product_id,
+
+            "product_name":
+                product_name,
+
+            "quantity_sold":
+                int(total_quantity or 0)
+        }
+
+        for (
+
+            product_id,
+
+            product_name,
+
+            total_quantity
+
+        ) in results
+    ]

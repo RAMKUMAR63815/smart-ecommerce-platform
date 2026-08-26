@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Analytics - Smart E-Commerce</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            margin: 30px auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            background: #2563eb;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .card-value {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .chart-box {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            min-height: 430px;
+        }
+
+        .chart-box.full {
+            grid-column: 1 / -1;
+        }
+
+        .chart-title {
+            font-size: 19px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 330px;
+            width: 100%;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: #6b7280;
+        }
+
+        @media (max-width: 900px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-box.full {
+                grid-column: auto;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Analytics</h1>
+
+        <a href="/" class="back-btn">
+            Dashboard
+        </a>
+    </div>
+
+
+    <!-- SUMMARY CARDS -->
+
+    <div class="cards">
+
+        <div class="card">
+            <div class="card-title">
+                Total Revenue
+            </div>
+
+            <div class="card-value">
+                ₹{{ total_revenue|floatformat:2 }}
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-title">
+                Total Orders
+            </div>
+
+            <div class="card-value">
+                {{ total_orders }}
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-title">
+                Total Products
+            </div>
+
+            <div class="card-value">
+                {{ total_products }}
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-title">
+                Total Users
+            </div>
+
+            <div class="card-value">
+                {{ total_users }}
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- CHARTS -->
+
+    <div class="charts">
+
+
+        <!-- REVENUE TRENDS -->
+
+        <div class="chart-box full">
+
+            <div class="chart-title">
+                Revenue Trends
+            </div>
+
+            <div class="chart-container">
+
+                <canvas id="revenueChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+        <!-- LOW STOCK PRODUCTS -->
+
+        <div class="chart-box">
+
+            <div class="chart-title">
+                Low Stock Products
+            </div>
+
+            <div class="chart-container">
+
+                <canvas id="lowStockChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+        <!-- ORDER STATUS -->
+
+        <div class="chart-box">
+
+            <div class="chart-title">
+                Order Status
+            </div>
+
+            <div class="chart-container">
+
+                <canvas id="orderStatusChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAYMENT STATUS -->
+
+        <div class="chart-box">
+
+            <div class="chart-title">
+                Payment Status
+            </div>
+
+            <div class="chart-container">
+
+                <canvas id="paymentStatusChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+        <!-- SALES STATUS -->
+
+        <div class="chart-box">
+
+            <div class="chart-title">
+                Sales Status
+            </div>
+
+            <div class="chart-container">
+
+                <canvas id="salesChart"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /*
+    ============================================================
+    DATA FROM DJANGO
+    ============================================================
+    */
+
+    const revenueLabels = {{ revenue_labels|safe }};
+    const revenueValues = {{ revenue_values|safe }};
+
+    const lowStockLabels = {{ low_stock_labels|safe }};
+    const lowStockValues = {{ low_stock_values|safe }};
+
+    const orderStatusLabels = {{ order_status_labels|safe }};
+    const orderStatusValues = {{ order_status_values|safe }};
+
+    const paymentStatusLabels = {{ payment_status_labels|safe }};
+    const paymentStatusValues = {{ payment_status_values|safe }};
+
+    const salesLabels = {{ sales_labels|safe }};
+    const salesValues = {{ sales_values|safe }};
+
+
+    /*
+    ============================================================
+    REVENUE TRENDS
+    ============================================================
+    */
+
+    new Chart(
+        document.getElementById("revenueChart"),
+        {
+            type: "line",
+
+            data: {
+                labels: revenueLabels,
+
+                datasets: [
+                    {
+                        label: "Revenue",
+
+                        data: revenueValues,
+
+                        borderWidth: 3,
+
+                        tension: 0.3,
+
+                        fill: false,
+
+                        pointRadius: 5
+                    }
+                ]
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                scales: {
+
+                    x: {
+                        display: true,
+
+                        title: {
+                            display: true,
+                            text: "Month"
+                        }
+                    },
+
+                    y: {
+
+                        display: true,
+
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Revenue (₹)"
+                        },
+
+                        ticks: {
+
+                            callback: function(value) {
+
+                                return "₹" +
+                                    Number(value).toLocaleString("en-IN");
+
+                            }
+
+                        }
+
+                    }
+
+                },
+
+                plugins: {
+
+                    legend: {
+                        display: true
+                    }
+
+                }
+
+            }
+        }
+    );
+
+
+    /*
+    ============================================================
+    LOW STOCK PRODUCTS
+    ============================================================
+    */
+
+    new Chart(
+        document.getElementById("lowStockChart"),
+        {
+            type: "bar",
+
+            data: {
+
+                labels: lowStockLabels,
+
+                datasets: [
+                    {
+                        label: "Stock",
+
+                        data: lowStockValues,
+
+                        borderWidth: 1,
+
+                        maxBarThickness: 60
+                    }
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                indexAxis: "x",
+
+                scales: {
+
+                    x: {
+
+                        display: true,
+
+                        title: {
+                            display: true,
+                            text: "Products"
+                        },
+
+                        ticks: {
+
+                            autoSkip: false,
+
+                            maxRotation: 45,
+
+                            minRotation: 0
+
+                        }
+
+                    },
+
+                    y: {
+
+                        display: true,
+
+                        beginAtZero: true,
+
+                        suggestedMax: 12,
+
+                        title: {
+                            display: true,
+                            text: "Stock Quantity"
+                        },
+
+                        ticks: {
+                            stepSize: 1
+                        }
+
+                    }
+
+                },
+
+                plugins: {
+
+                    legend: {
+                        display: true
+                    }
+
+                }
+
+            }
+
+        }
+    );
+
+
+    /*
+    ============================================================
+    ORDER STATUS
+    ============================================================
+    */
+
+    new Chart(
+        document.getElementById("orderStatusChart"),
+        {
+            type: "doughnut",
+
+            data: {
+
+                labels: orderStatusLabels,
+
+                datasets: [
+                    {
+                        label: "Orders",
+
+                        data: orderStatusValues,
+
+                        borderWidth: 1
+                    }
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+                        position: "bottom"
+                    }
+
+                }
+
+            }
+
+        }
+    );
+
+
+    /*
+    ============================================================
+    PAYMENT STATUS
+    ============================================================
+    */
+
+    new Chart(
+        document.getElementById("paymentStatusChart"),
+        {
+            type: "pie",
+
+            data: {
+
+                labels: paymentStatusLabels,
+
+                datasets: [
+                    {
+                        label: "Payments",
+
+                        data: paymentStatusValues,
+
+                        borderWidth: 1
+                    }
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+                        position: "bottom"
+                    }
+
+                }
+
+            }
+
+        }
+    );
+
+
+    /*
+    ============================================================
+    SALES STATUS
+    ============================================================
+    */
+
+    new Chart(
+        document.getElementById("salesChart"),
+        {
+            type: "bar",
+
+            data: {
+
+                labels: salesLabels,
+
+                datasets: [
+                    {
+                        label: "Orders",
+
+                        data: salesValues,
+
+                        borderWidth: 1
+                    }
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                scales: {
+
+                    x: {
+
+                        display: true,
+
+                        title: {
+                            display: true,
+                            text: "Payment Status"
+                        }
+
+                    },
+
+                    y: {
+
+                        display: true,
+
+                        beginAtZero: true,
+
+                        title: {
+                            display: true,
+                            text: "Number of Orders"
+                        },
+
+                        ticks: {
+                            stepSize: 1
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+    );
+
+</script>
+
+</body>
+</html>

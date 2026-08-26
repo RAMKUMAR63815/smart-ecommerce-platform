@@ -1,0 +1,30 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/auth/refresh?refresh_token=string"
+method: POST
+headers:
+  Accept: application/json
+queryParams:
+  - key: refresh_token
+    value: string
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "title": "Refresh Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Refresh Token Endpoint.resources/examples
+order: 1000

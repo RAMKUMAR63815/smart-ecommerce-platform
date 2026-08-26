@@ -1,0 +1,17 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/admin/analytics"
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+auth:
+  type: oauth2
+  credentials:
+    accessTokenUrl: /auth/login
+    grant_type: password_credentials
+settings: {}
+examples: ./.resources/Get Analytics.resources/examples
+order: 1000

@@ -1,41 +1,25 @@
-import {
+import React, {
   useEffect,
-  useRef,
+  useRef
 } from "react";
-
-
-const API_URL =
-  "http://127.0.0.1:8000";
 
 
 function NotificationListener({
   userId,
-  onNotification,
-  onExistingNotifications,
+  onNotification
 }) {
 
-  const socketRef =
-    useRef(null);
+  const socketRef = useRef(null);
 
   const reconnectTimerRef =
     useRef(null);
 
-  const manuallyClosedRef =
-    useRef(false);
-
-  const connectingRef =
-    useRef(false);
-
-
-  // =====================================================
-  // LOAD DATABASE NOTIFICATIONS
-  // =====================================================
 
   useEffect(() => {
 
     if (!userId) {
 
-      console.warn(
+      console.log(
         "NotificationListener: No user ID"
       );
 
@@ -43,147 +27,60 @@ function NotificationListener({
     }
 
 
-    let cancelled =
-      false;
+    let shouldReconnect = true;
 
 
-    const loadNotifications =
-      async () => {
+    const connectWebSocket = () => {
 
-        try {
-
-          console.log(
-            "Loading existing notifications for user:",
-            userId
-          );
-
-
-          const response =
-            await fetch(
-              `${API_URL}/notifications/?user_id=${userId}`
-            );
-
-
-          if (!response.ok) {
-
-            console.error(
-              "Failed to load notifications:",
-              response.status
-            );
-
-            return;
-          }
-
-
-          const data =
-            await response.json();
-
-
-          if (!cancelled) {
-
-            console.log(
-              "Existing notifications:",
-              data
-            );
-
-
-            onExistingNotifications(
-              data
-            );
-
-          }
-
-        }
-        catch (error) {
-
-          console.error(
-            "Notification loading error:",
-            error
-          );
-
-        }
-
-      };
-
-
-    loadNotifications();
-
-
-    return () => {
-
-      cancelled = true;
-
-    };
-
-  }, [
-    userId,
-    onExistingNotifications,
-  ]);
-
-
-  // =====================================================
-  // WEBSOCKET
-  // =====================================================
-
-  useEffect(() => {
-
-    if (!userId) {
-      return;
-    }
-
-
-    manuallyClosedRef.current =
-      false;
-
-
-    const connect = () => {
-
-      // Prevent multiple connections
-      if (
-        connectingRef.current ||
-        (
-          socketRef.current &&
-          (
-            socketRef.current.readyState ===
-              WebSocket.OPEN ||
-            socketRef.current.readyState ===
-              WebSocket.CONNECTING
-          )
-        )
-      ) {
-
+      if (!shouldReconnect) {
         return;
-
       }
 
 
-      connectingRef.current =
-        true;
+      // -------------------------------------------------
+      // DON'T CREATE DUPLICATE SOCKET
+      // -------------------------------------------------
+
+      if (
+        socketRef.current &&
+        (
+          socketRef.current.readyState ===
+            WebSocket.OPEN ||
+          socketRef.current.readyState ===
+            WebSocket.CONNECTING
+        )
+      ) {
+
+        console.log(
+          "Notification WebSocket already active"
+        );
+
+        return;
+      }
 
 
-      const url =
+      const wsUrl =
         `ws://127.0.0.1:8000/ws/${userId}`;
 
 
       console.log(
         "Connecting Notification WebSocket:",
-        url
+        wsUrl
       );
 
 
-      const socket =
-        new WebSocket(url);
+      const ws =
+        new WebSocket(wsUrl);
 
 
-      socketRef.current =
-        socket;
+      socketRef.current = ws;
 
 
-      socket.onopen = () => {
+      // =================================================
+      // OPEN
+      // =================================================
 
-        connectingRef.current =
-          false;
-
+      ws.onopen = () => {
 
         console.log(
           "Notification WebSocket connected"
@@ -192,14 +89,16 @@ function NotificationListener({
       };
 
 
-      socket.onmessage = (event) => {
+      // =================================================
+      // MESSAGE
+      // =================================================
+
+      ws.onmessage = (event) => {
 
         try {
 
           const data =
-            JSON.parse(
-              event.data
-            );
+            JSON.parse(event.data);
 
 
           console.log(
@@ -208,13 +107,37 @@ function NotificationListener({
           );
 
 
-          onNotification(data);
+          // ------------------------------------------------
+          // CONNECTION CONFIRMATION
+          // ------------------------------------------------
 
-        }
-        catch (error) {
+          if (
+            data.event === "connected"
+          ) {
+
+            console.log(
+              "WebSocket connection confirmed"
+            );
+
+            return;
+          }
+
+
+          // ------------------------------------------------
+          // SEND TO APP
+          // ------------------------------------------------
+
+          if (onNotification) {
+
+            onNotification(data);
+
+          }
+
+        } catch (error) {
 
           console.error(
             "Invalid WebSocket message:",
+            event.data,
             error
           );
 
@@ -223,7 +146,11 @@ function NotificationListener({
       };
 
 
-      socket.onerror = (error) => {
+      // =================================================
+      // ERROR
+      // =================================================
+
+      ws.onerror = (error) => {
 
         console.error(
           "Notification WebSocket error:",
@@ -233,77 +160,111 @@ function NotificationListener({
       };
 
 
-      socket.onclose = () => {
+      // =================================================
+      // CLOSE
+      // =================================================
 
-        connectingRef.current =
-          false;
-
+      ws.onclose = () => {
 
         console.log(
           "Notification WebSocket disconnected"
         );
 
 
-        socketRef.current =
-          null;
-
-
         if (
-          !manuallyClosedRef.current
+          socketRef.current === ws
         ) {
 
-          clearTimeout(
-            reconnectTimerRef.current
-          );
-
-
-          reconnectTimerRef.current =
-            setTimeout(
-              connect,
-              3000
-            );
+          socketRef.current = null;
 
         }
+
+
+        if (!shouldReconnect) {
+          return;
+        }
+
+
+        console.log(
+          "Reconnecting Notification WebSocket..."
+        );
+
+
+        reconnectTimerRef.current =
+          setTimeout(
+            connectWebSocket,
+            3000
+          );
 
       };
 
     };
 
 
-    connect();
+    // =================================================
+    // CONNECT
+    // =================================================
+
+    connectWebSocket();
 
 
-    // ===================================================
+    // =================================================
     // CLEANUP
-    // ===================================================
+    // =================================================
 
     return () => {
 
-      manuallyClosedRef.current =
-        true;
-
-
-      clearTimeout(
-        reconnectTimerRef.current
+      console.log(
+        "Cleaning Notification WebSocket"
       );
 
 
-      connectingRef.current =
-        false;
+      shouldReconnect = false;
 
 
-      if (socketRef.current) {
+      if (
+        reconnectTimerRef.current
+      ) {
 
-        console.log(
-          "Cleaning Notification WebSocket"
+        clearTimeout(
+          reconnectTimerRef.current
         );
 
-
-        socketRef.current.close();
-
-
-        socketRef.current =
+        reconnectTimerRef.current =
           null;
+
+      }
+
+
+      const ws =
+        socketRef.current;
+
+
+      socketRef.current =
+        null;
+
+
+      if (ws) {
+
+        ws.onopen = null;
+
+        ws.onmessage = null;
+
+        ws.onerror = null;
+
+        ws.onclose = null;
+
+
+        if (
+          ws.readyState ===
+            WebSocket.OPEN ||
+          ws.readyState ===
+            WebSocket.CONNECTING
+        ) {
+
+          ws.close();
+
+        }
 
       }
 
@@ -311,7 +272,7 @@ function NotificationListener({
 
   }, [
     userId,
-    onNotification,
+    onNotification
   ]);
 
 

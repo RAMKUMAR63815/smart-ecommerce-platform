@@ -1,509 +1,401 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
 
+import React, { useState } from "react";
+
+const API_URL = "http://127.0.0.1:8000";
 
 function NotificationUI({
-  notifications,
-  popupNotifications,
-  onMarkAsRead,
-  onMarkAllAsRead,
-  onClosePopup,
-  onClearPopups,
+  notifications = [],
+  onClose,
+  onClear
 }) {
 
-  const [open, setOpen] =
-    useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const [loadingId, setLoadingId] =
+    useState(null);
 
 
   // =====================================================
-  // UNREAD DATABASE NOTIFICATIONS
+  // UNREAD COUNT
   // =====================================================
 
   const unreadCount =
-    useMemo(
-      () =>
-        notifications.filter(
-          (notification) =>
-            !notification.read_status
-        ).length,
-      [notifications]
-    );
+    notifications.filter(
+      (notification) =>
+        notification.read_status !== true
+    ).length;
 
 
   // =====================================================
-  // AUTO CLOSE POPUPS
+  // MARK NOTIFICATION AS READ
   // =====================================================
 
-  useEffect(() => {
+  const markAsRead = async (notification) => {
 
-    if (
-      popupNotifications.length ===
-      0
-    ) {
+    // Cart and order-status notifications may not
+    // have a database notification ID.
+    if (!notification.notification_id) {
+
+      console.log(
+        "No database notification ID:",
+        notification.id
+      );
+
+      onClose(notification.id);
+
       return;
     }
 
 
-    const timers =
-      popupNotifications.map(
+    try {
+
+      setLoadingId(
+        notification.notification_id
+      );
+
+
+      const response = await fetch(
+        `${API_URL}/notifications/read`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            notification_id:
+              notification.notification_id
+          })
+        }
+      );
+
+
+      if (!response.ok) {
+
+        const errorText =
+          await response.text();
+
+        console.error(
+          "Mark notification read failed:",
+          response.status,
+          errorText
+        );
+
+        return;
+      }
+
+
+      console.log(
+        "Notification marked as read:",
+        notification.notification_id
+      );
+
+
+      // Remove from popup after reading
+      onClose(notification.id);
+
+    } catch (error) {
+
+      console.error(
+        "Error marking notification as read:",
+        error
+      );
+
+    } finally {
+
+      setLoadingId(null);
+
+    }
+
+  };
+
+
+  // =====================================================
+  // MARK ALL DATABASE NOTIFICATIONS AS READ
+  // =====================================================
+
+  const markAllAsRead = async () => {
+
+    const unreadNotifications =
+      notifications.filter(
         (notification) =>
-          setTimeout(
-            () => {
+          notification.read_status !== true &&
+          notification.notification_id
+      );
 
-              onClosePopup(
-                notification.id
-              );
 
+    for (
+      const notification
+      of unreadNotifications
+    ) {
+
+      try {
+
+        await fetch(
+          `${API_URL}/notifications/read`,
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
             },
-            5000
-          )
-      );
 
+            body: JSON.stringify({
+              notification_id:
+                notification.notification_id
+            })
+          }
+        );
 
-    return () => {
+      } catch (error) {
 
-      timers.forEach(
-        (timer) =>
-          clearTimeout(timer)
-      );
-
-    };
-
-  }, [
-    popupNotifications,
-    onClosePopup,
-  ]);
-
-
-  // =====================================================
-  // ICON
-  // =====================================================
-
-  const getIcon =
-    (type) => {
-
-      switch (type) {
-
-        case "payment":
-          return "💳";
-
-        case "order":
-          return "📦";
-
-        case "cart":
-          return "🛒";
-
-        default:
-          return "🔔";
+        console.error(
+          "Error marking notification as read:",
+          error
+        );
 
       }
 
-    };
+    }
+
+
+    // Clear the visible notifications
+    onClear();
+
+  };
 
 
   // =====================================================
-  // TITLE
+  // NOTIFICATION ICON
   // =====================================================
 
-  const getTitle =
-    (type) => {
+  const getIcon = (type) => {
 
-      switch (type) {
+    switch (type) {
 
-        case "payment":
-          return "Payment Notification";
+      case "payment":
+        return "💳";
 
-        case "order":
-          return "Order Update";
+      case "order":
+        return "📦";
 
-        case "cart":
-          return "Cart Updated";
+      case "cart":
+        return "🛒";
 
-        default:
-          return "Notification";
+      default:
+        return "🔔";
 
-      }
+    }
 
-    };
+  };
 
 
   // =====================================================
-  // DATE
+  // NOTIFICATION TITLE
   // =====================================================
 
-  const formatDate =
-    (timestamp) => {
+  const getTitle = (type) => {
 
-      if (!timestamp) {
-        return "";
-      }
+    switch (type) {
+
+      case "payment":
+        return "Payment Notification";
+
+      case "order":
+        return "Order Update";
+
+      case "cart":
+        return "Cart Updated";
+
+      default:
+        return "Notification";
+
+    }
+
+  };
 
 
-      const date =
-        new Date(timestamp);
+  // =====================================================
+  // DATE FORMAT
+  // =====================================================
+
+  const formatDate = (timestamp) => {
+
+    if (!timestamp) {
+      return "";
+    }
 
 
-      if (
-        Number.isNaN(
-          date.getTime()
-        )
-      ) {
-        return "";
-      }
+    try {
+
+      return new Date(
+        timestamp
+      ).toLocaleString();
+
+    } catch {
+
+      return "";
+
+    }
+
+  };
 
 
-      return date.toLocaleString();
-
-    };
-
+  // =====================================================
+  // UI
+  // =====================================================
 
   return (
 
     <>
 
       {/* =================================================
-          REAL-TIME POPUPS
+          NOTIFICATION BELL
           ================================================= */}
 
       <div
         style={{
-          position:
-            "fixed",
-
-          top:
-            "20px",
-
-          right:
-            "20px",
-
-          width:
-            "360px",
-
-          zIndex:
-            99999,
-
-          display:
-            "flex",
-
-          flexDirection:
-            "column",
-
-          gap:
-            "10px",
+          position: "fixed",
+          top: "20px",
+          right: "25px",
+          zIndex: 9999
         }}
       >
 
-        {popupNotifications.map(
-          (notification) => (
+        <button
+          onClick={() =>
+            setIsOpen(
+              (previous) =>
+                !previous
+            )
+          }
 
-            <div
-              key={
-                notification.id
-              }
-              style={{
-                background:
-                  "#fff",
-
-                border:
-                  "1px solid #ddd",
-
-                borderRadius:
-                  "12px",
-
-                padding:
-                  "15px",
-
-                boxShadow:
-                  "0 6px 20px rgba(0,0,0,0.2)",
-              }}
-            >
-
-              <div
-                style={{
-                  display:
-                    "flex",
-
-                  alignItems:
-                    "flex-start",
-
-                  gap:
-                    "10px",
-                }}
-              >
-
-                <span
-                  style={{
-                    fontSize:
-                      "25px",
-                  }}
-                >
-                  {getIcon(
-                    notification.type
-                  )}
-                </span>
-
-
-                <div
-                  style={{
-                    flex:
-                      1,
-                  }}
-                >
-
-                  <strong>
-                    {getTitle(
-                      notification.type
-                    )}
-                  </strong>
-
-
-                  <div
-                    style={{
-                      marginTop:
-                        "5px",
-                    }}
-                  >
-                    {
-                      notification.message
-                    }
-                  </div>
-
-
-                  <div
-                    style={{
-                      marginTop:
-                        "5px",
-
-                      fontSize:
-                        "12px",
-
-                      color:
-                        "#777",
-                    }}
-                  >
-                    {
-                      formatDate(
-                        notification.timestamp
-                      )
-                    }
-                  </div>
-
-                </div>
-
-
-                <button
-                  onClick={() =>
-                    onClosePopup(
-                      notification.id
-                    )
-                  }
-                  style={{
-                    border:
-                      "none",
-
-                    background:
-                      "transparent",
-
-                    fontSize:
-                      "20px",
-
-                    cursor:
-                      "pointer",
-                  }}
-                >
-                  ×
-                </button>
-
-              </div>
-
-            </div>
-
-          )
-        )}
-
-      </div>
-
-
-      {/* =================================================
-          NOTIFICATION PANEL
-          ================================================= */}
-
-      <div
-        style={{
-          position:
-            "fixed",
-
-          bottom:
-            "20px",
-
-          right:
-            "20px",
-
-          width:
-            "430px",
-
-          maxHeight:
-            "650px",
-
-          background:
-            "#fff",
-
-          border:
-            "1px solid #ddd",
-
-          borderRadius:
-            "14px",
-
-          boxShadow:
-            "0 8px 30px rgba(0,0,0,0.2)",
-
-          zIndex:
-            9999,
-
-          overflow:
-            "hidden",
-        }}
-      >
-
-        {/* HEADER */}
-
-        <div
           style={{
-            padding:
-              "15px",
-
-            display:
-              "flex",
-
-            justifyContent:
-              "space-between",
-
-            alignItems:
-              "center",
-
-            borderBottom:
-              "1px solid #eee",
+            width: "52px",
+            height: "52px",
+            borderRadius: "50%",
+            border: "none",
+            background: "#2563eb",
+            color: "white",
+            fontSize: "24px",
+            cursor: "pointer",
+            position: "relative",
+            boxShadow:
+              "0 4px 12px rgba(0,0,0,0.2)"
           }}
         >
 
-          <div>
+          🔔
 
-            <strong
+
+          {/* UNREAD BADGE */}
+
+          {unreadCount > 0 && (
+
+            <span
               style={{
-                fontSize:
-                  "18px",
+                position: "absolute",
+                top: "-5px",
+                right: "-5px",
+                background: "#ef4444",
+                color: "white",
+                borderRadius: "50%",
+                minWidth: "22px",
+                height: "22px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "12px",
+                fontWeight: "bold",
+                padding: "2px"
               }}
             >
-              🔔 Notifications
-            </strong>
+
+              {unreadCount > 99
+                ? "99+"
+                : unreadCount}
+
+            </span>
+
+          )}
+
+        </button>
 
 
-            {unreadCount > 0 && (
+        {/* =================================================
+            NOTIFICATION PANEL
+            ================================================= */}
 
-              <span
-                style={{
-                  marginLeft:
-                    "8px",
+        {isOpen && (
 
-                  background:
-                    "#dc3545",
-
-                  color:
-                    "#fff",
-
-                  borderRadius:
-                    "20px",
-
-                  padding:
-                    "3px 8px",
-
-                  fontSize:
-                    "12px",
-                }}
-              >
-                {unreadCount}
-              </span>
-
-            )}
-
-          </div>
-
-
-          <button
-            onClick={() =>
-              setOpen(
-                !open
-              )
-            }
+          <div
             style={{
+              position: "absolute",
+              top: "62px",
+              right: "0",
+              width: "380px",
+              maxHeight: "600px",
+              background: "white",
+              borderRadius: "12px",
+              boxShadow:
+                "0 8px 30px rgba(0,0,0,0.2)",
+              overflow: "hidden",
               border:
-                "none",
-
-              background:
-                "transparent",
-
-              cursor:
-                "pointer",
-
-              fontSize:
-                "18px",
+                "1px solid #e5e7eb"
             }}
           >
-            {open ? "▼" : "▲"}
-          </button>
 
-        </div>
-
-
-        {open && (
-
-          <>
-
-            {/* ACTIONS */}
+            {/* HEADER */}
 
             <div
               style={{
-                padding:
-                  "10px 15px",
-
-                display:
-                  "flex",
-
-                justifyContent:
-                  "flex-end",
-
+                padding: "16px",
                 borderBottom:
-                  "1px solid #eee",
+                  "1px solid #e5e7eb",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between"
               }}
             >
+
+              <div>
+
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: "18px"
+                  }}
+                >
+                  Notifications
+                </h3>
+
+                <small
+                  style={{
+                    color: "#6b7280"
+                  }}
+                >
+                  {unreadCount} unread
+                </small>
+
+              </div>
+
 
               {unreadCount > 0 && (
 
                 <button
                   onClick={
-                    onMarkAllAsRead
+                    markAllAsRead
                   }
+
                   style={{
-                    border:
-                      "none",
-
-                    background:
-                      "#198754",
-
-                    color:
-                      "#fff",
-
-                    padding:
-                      "8px 12px",
-
-                    borderRadius:
-                      "6px",
-
-                    cursor:
-                      "pointer",
+                    border: "none",
+                    background: "none",
+                    color: "#2563eb",
+                    cursor: "pointer",
+                    fontSize: "13px"
                   }}
                 >
                   Mark all read
@@ -514,177 +406,245 @@ function NotificationUI({
             </div>
 
 
-            {/* DATABASE NOTIFICATIONS */}
+            {/* =================================================
+                EMPTY
+                ================================================= */}
 
-            <div
-              style={{
-                maxHeight:
-                  "530px",
+            {notifications.length === 0 ? (
 
-                overflowY:
-                  "auto",
-              }}
-            >
-
-              {notifications.length ===
-              0 ? (
+              <div
+                style={{
+                  padding: "40px 20px",
+                  textAlign: "center",
+                  color: "#6b7280"
+                }}
+              >
 
                 <div
                   style={{
-                    padding:
-                      "30px",
-
-                    textAlign:
-                      "center",
-
-                    color:
-                      "#777",
+                    fontSize: "40px",
+                    marginBottom: "10px"
                   }}
                 >
-                  No notifications
+                  🔕
                 </div>
 
-              ) : (
+                <p>
+                  No notifications
+                </p>
 
-                notifications.map(
+              </div>
+
+            ) : (
+
+              <div
+                style={{
+                  maxHeight: "480px",
+                  overflowY: "auto"
+                }}
+              >
+
+                {notifications.map(
                   (notification) => (
 
                     <div
                       key={
-                        notification.databaseId
+                        notification.id
                       }
-                      style={{
-                        padding:
-                          "15px",
 
+                      style={{
+                        padding: "15px",
                         borderBottom:
-                          "1px solid #eee",
+                          "1px solid #f1f5f9",
 
                         background:
                           notification.read_status
-                            ? "#fff"
-                            : "#f5f9ff",
+                            ? "white"
+                            : "#eff6ff",
+
+                        display: "flex",
+                        gap: "12px"
                       }}
                     >
 
+                      {/* ICON */}
+
                       <div
                         style={{
-                          display:
-                            "flex",
+                          fontSize: "25px"
+                        }}
+                      >
 
-                          gap:
-                            "10px",
+                        {getIcon(
+                          notification.type
+                        )}
+
+                      </div>
+
+
+                      {/* CONTENT */}
+
+                      <div
+                        style={{
+                          flex: 1
                         }}
                       >
 
                         <div
                           style={{
-                            fontSize:
-                              "25px",
+                            fontWeight: "600",
+                            marginBottom: "5px"
                           }}
                         >
-                          {getIcon(
+
+                          {getTitle(
                             notification.type
                           )}
+
                         </div>
 
 
                         <div
                           style={{
-                            flex:
-                              1,
+                            fontSize: "14px",
+                            color: "#374151",
+                            marginBottom: "6px"
                           }}
                         >
 
-                          <strong>
-                            {getTitle(
-                              notification.type
+                          {
+                            notification.message
+                          }
+
+                        </div>
+
+
+                        {notification.timestamp && (
+
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              color: "#9ca3af"
+                            }}
+                          >
+
+                            {formatDate(
+                              notification.timestamp
                             )}
-                          </strong>
 
-
-                          <div
-                            style={{
-                              marginTop:
-                                "5px",
-                            }}
-                          >
-                            {
-                              notification.message
-                            }
                           </div>
 
-
-                          <div
-                            style={{
-                              marginTop:
-                                "7px",
-
-                              color:
-                                "#777",
-
-                              fontSize:
-                                "12px",
-                            }}
-                          >
-                            {
-                              formatDate(
-                                notification.timestamp
-                              )
-                            }
-                          </div>
+                        )}
 
 
-                          {!notification.read_status && (
+                        {/* MARK READ */}
+
+                        {!notification.read_status &&
+                          notification.notification_id && (
 
                             <button
                               onClick={() =>
-                                onMarkAsRead(
-                                  notification.databaseId
+                                markAsRead(
+                                  notification
                                 )
                               }
+
+                              disabled={
+                                loadingId ===
+                                notification.notification_id
+                              }
+
                               style={{
-                                marginTop:
-                                  "10px",
-
-                                border:
-                                  "none",
-
+                                marginTop: "8px",
+                                border: "none",
                                 background:
-                                  "#0d6efd",
-
-                                color:
-                                  "#fff",
-
+                                  "#2563eb",
+                                color: "white",
                                 padding:
                                   "6px 10px",
-
                                 borderRadius:
                                   "6px",
-
                                 cursor:
                                   "pointer",
+                                fontSize:
+                                  "12px"
                               }}
                             >
-                              Mark as read
+
+                              {loadingId ===
+                              notification.notification_id
+                                ? "Saving..."
+                                : "Mark as read"}
+
                             </button>
 
                           )}
 
-                        </div>
-
                       </div>
+
+
+                      {/* CLOSE */}
+
+                      <button
+                        onClick={() =>
+                          onClose(
+                            notification.id
+                          )
+                        }
+
+                        style={{
+                          border: "none",
+                          background: "none",
+                          color: "#9ca3af",
+                          cursor: "pointer",
+                          fontSize: "18px",
+                          alignSelf: "flex-start"
+                        }}
+                      >
+                        ×
+                      </button>
 
                     </div>
 
                   )
-                )
+                )}
 
-              )}
+              </div>
 
-            </div>
+            )}
 
-          </>
+
+            {/* FOOTER */}
+
+            {notifications.length > 0 && (
+
+              <div
+                style={{
+                  padding: "10px",
+                  borderTop:
+                    "1px solid #e5e7eb",
+                  textAlign: "center"
+                }}
+              >
+
+                <button
+                  onClick={onClear}
+
+                  style={{
+                    border: "none",
+                    background: "none",
+                    color: "#ef4444",
+                    cursor: "pointer"
+                  }}
+                >
+                  Clear notifications
+                </button>
+
+              </div>
+
+            )}
+
+          </div>
 
         )}
 
@@ -696,5 +656,5 @@ function NotificationUI({
 
 }
 
-
 export default NotificationUI;
+

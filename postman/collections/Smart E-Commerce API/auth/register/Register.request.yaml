@@ -1,0 +1,43 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "string",
+      "email": "wEPpCPNy8J1PG@bvmzevXIqSfZc.fzu",
+      "password": "string"
+    }
+  $type: |-
+    {
+      "title": "UserRegister",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name"
+        },
+        "email": {
+          "type": "string",
+          "title": "Email",
+          "format": "email"
+        },
+        "password": {
+          "type": "string",
+          "title": "Password"
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "password"
+      ]
+    }
+settings: {}
+examples: ./.resources/Register.resources/examples
+order: 1000

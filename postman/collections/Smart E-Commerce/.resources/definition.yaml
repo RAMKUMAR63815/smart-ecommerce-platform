@@ -1,0 +1,16 @@
+$kind: collection
+name: Smart E-Commerce
+description: |-
+  This collection provides a comprehensive set of API requests for the Smart E-Commerce platform. It covers the full lifecycle of an e-commerce application, including:
+
+  - **Authentication** – User registration and login flows.
+  - **User Management** – Retrieve the currently authenticated user's profile.
+  - **Product Catalog** – Browse and manage products.
+  - **Shopping Cart** – Add, update, and manage cart items.
+  - **Checkout & Orders** – Place orders and track their status.
+  - **Payments** – Process payments and handle Stripe webhook events.
+  - **Dashboard & Analytics** – Access platform-level metrics and insights.
+  - **Notifications** – Manage user notifications.
+  - **Admin** – Administrative operations for platform management.
+
+  Use this collection to manually test and explore the core API endpoints of the Smart E-Commerce backend. Ensure the `{{baseUrl}}` environment variable is configured before sending requests.

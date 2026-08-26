@@ -1,0 +1,22 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/cart/add?user_id=4705&product_id=7798&quantity=1"
+  method: POST
+  headers:
+    Accept: application/json
+  queryParams:
+    user_id: "4705"
+    product_id: "7798"
+    quantity: "1"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: text
+    content: ""
+order: 1000

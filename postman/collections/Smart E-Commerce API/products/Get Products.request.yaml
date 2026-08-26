@@ -1,0 +1,65 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/products/?category=string&min_price=1253.8182198323543&max_price=1253.8182198323543&min_popularity=5906&in_stock=false"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: category
+    value: string
+    disabled: false
+    description: ""
+    $type: string
+  - key: min_price
+    value: "1253.8182198323543"
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+  - key: max_price
+    value: "1253.8182198323543"
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+  - key: min_popularity
+    value: "5906"
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+  - key: in_stock
+    value: "false"
+    disabled: false
+    description: ""
+    $type: boolean
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Get Products.resources/examples
+order: 2000

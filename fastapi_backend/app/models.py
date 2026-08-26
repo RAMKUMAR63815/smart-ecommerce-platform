@@ -53,7 +53,9 @@ class User(Base):
         nullable=False
     )
 
-    # Relationships
+    # -----------------------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------------------
 
     carts = relationship(
         "Cart",
@@ -119,18 +121,26 @@ class Product(Base):
         nullable=True
     )
 
+    # Optional popularity field
     popularity = Column(
         Integer,
         nullable=False,
         default=0
     )
 
-    # Relationship
+    # -----------------------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------------------
 
     carts = relationship(
         "Cart",
         back_populates="product",
         cascade="all, delete-orphan"
+    )
+
+    order_items = relationship(
+        "OrderItem",
+        back_populates="product"
     )
 
 
@@ -166,7 +176,9 @@ class Cart(Base):
         nullable=False
     )
 
-    # Relationships
+    # -----------------------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------------------
 
     user = relationship(
         "User",
@@ -207,32 +219,32 @@ class Order(Base):
     # -----------------------------------------------------
     # PAYMENT STATUS
     #
-    # pending
-    # paid
-    # failed
-    # cancelled
+    # Pending
+    # Paid
+    # Failed
+    # Cancelled
     # -----------------------------------------------------
 
     payment_status = Column(
         String(30),
-        default="pending",
+        default="Pending",
         nullable=False
     )
 
     # -----------------------------------------------------
     # ORDER STATUS
     #
-    # pending
-    # confirmed
-    # processing
-    # shipped
-    # delivered
-    # cancelled
+    # Pending
+    # Confirmed
+    # Processing
+    # Shipped
+    # Delivered
+    # Cancelled
     # -----------------------------------------------------
 
     order_status = Column(
         String(30),
-        default="pending",
+        default="Pending",
         nullable=False
     )
 
@@ -242,7 +254,9 @@ class Order(Base):
         nullable=False
     )
 
-    # Relationships
+    # -----------------------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------------------
 
     user = relationship(
         "User",
@@ -253,6 +267,115 @@ class Order(Base):
         "Payment",
         back_populates="order",
         cascade="all, delete-orphan"
+    )
+
+    # IMPORTANT:
+    # One Order can contain many OrderItems.
+
+    items = relationship(
+        "OrderItem",
+        back_populates="order",
+        cascade="all, delete-orphan"
+    )
+
+
+# =========================================================
+# ORDER ITEM MODEL
+# =========================================================
+#
+# This table stores the actual products purchased
+# inside every order.
+#
+# Example:
+#
+# Order #81
+#
+# Laptop      quantity = 2    price = 65000
+# Mouse       quantity = 1    price = 1500
+# Keyboard    quantity = 1    price = 3000
+#
+# This allows us to calculate:
+#
+# - Top-selling products
+# - Total quantity sold
+# - Product sales
+# - Product revenue
+# - Sales analytics
+# - Detailed reports
+#
+# =========================================================
+
+class OrderItem(Base):
+
+    __tablename__ = "order_items"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    # -----------------------------------------------------
+    # ORDER REFERENCE
+    # -----------------------------------------------------
+
+    order_id = Column(
+        Integer,
+        ForeignKey("orders.id"),
+        nullable=False,
+        index=True
+    )
+
+    # -----------------------------------------------------
+    # PRODUCT REFERENCE
+    # -----------------------------------------------------
+
+    product_id = Column(
+        Integer,
+        ForeignKey("products.id"),
+        nullable=False,
+        index=True
+    )
+
+    # -----------------------------------------------------
+    # QUANTITY PURCHASED
+    # -----------------------------------------------------
+
+    quantity = Column(
+        Integer,
+        nullable=False,
+        default=1
+    )
+
+    # -----------------------------------------------------
+    # PRICE AT TIME OF PURCHASE
+    # -----------------------------------------------------
+    #
+    # Do NOT depend on Product.price here.
+    #
+    # If the product price changes later,
+    # old order records should still contain
+    # the original purchase price.
+    #
+    # -----------------------------------------------------
+
+    price = Column(
+        Float,
+        nullable=False
+    )
+
+    # -----------------------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------------------
+
+    order = relationship(
+        "Order",
+        back_populates="items"
+    )
+
+    product = relationship(
+        "Product",
+        back_populates="order_items"
     )
 
 
@@ -273,7 +396,8 @@ class Payment(Base):
     order_id = Column(
         Integer,
         ForeignKey("orders.id"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     amount = Column(
@@ -281,7 +405,14 @@ class Payment(Base):
         nullable=False
     )
 
-    # stripe / cod / upi / card
+    # -----------------------------------------------------
+    # PAYMENT METHOD
+    #
+    # stripe
+    # cod
+    # upi
+    # card
+    # -----------------------------------------------------
 
     payment_method = Column(
         String(50),
@@ -289,7 +420,9 @@ class Payment(Base):
         nullable=False
     )
 
-    # Stripe PaymentIntent ID / Checkout Session ID
+    # -----------------------------------------------------
+    # TRANSACTION ID
+    # -----------------------------------------------------
 
     transaction_id = Column(
         String(255),
@@ -297,7 +430,14 @@ class Payment(Base):
         index=True
     )
 
-    # pending / paid / failed / cancelled
+    # -----------------------------------------------------
+    # PAYMENT STATUS
+    #
+    # pending
+    # paid
+    # failed
+    # cancelled
+    # -----------------------------------------------------
 
     status = Column(
         String(30),
@@ -311,7 +451,9 @@ class Payment(Base):
         nullable=False
     )
 
-    # Relationship
+    # -----------------------------------------------------
+    # RELATIONSHIP
+    # -----------------------------------------------------
 
     order = relationship(
         "Order",
@@ -336,7 +478,8 @@ class Notification(Base):
     user_id = Column(
         Integer,
         ForeignKey("users.id"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     type = Column(
@@ -361,7 +504,9 @@ class Notification(Base):
         nullable=False
     )
 
-    # Relationship
+    # -----------------------------------------------------
+    # RELATIONSHIP
+    # -----------------------------------------------------
 
     user = relationship(
         "User",

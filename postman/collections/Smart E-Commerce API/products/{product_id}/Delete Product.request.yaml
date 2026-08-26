@@ -1,0 +1,35 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/products/:product_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: product_id
+    value: "7798"
+    disabled: false
+    description: ""
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "title": "Product Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+auth:
+  type: oauth2
+  credentials:
+    accessTokenUrl: /auth/login
+    grant_type: password_credentials
+settings: {}
+examples: ./.resources/Delete Product.resources/examples
+order: 3000

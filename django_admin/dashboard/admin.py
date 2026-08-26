@@ -1,11 +1,16 @@
 from django.contrib import admin
 
-from .models import Users, Products, Cart, Orders
+from .models import (
+    Users,
+    Products,
+    Cart,
+    Orders,
+)
 
 
-# =========================
+# =========================================================
 # USERS ADMIN
-# =========================
+# =========================================================
 
 @admin.register(Users)
 class UsersAdmin(admin.ModelAdmin):
@@ -27,9 +32,9 @@ class UsersAdmin(admin.ModelAdmin):
     )
 
 
-# =========================
+# =========================================================
 # PRODUCTS ADMIN
-# =========================
+# =========================================================
 
 @admin.register(Products)
 class ProductsAdmin(admin.ModelAdmin):
@@ -37,23 +42,31 @@ class ProductsAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "name",
+        "category",
         "price",
         "stock",
+        "popularity",
     )
 
     search_fields = (
         "name",
         "description",
+        "category",
     )
 
     list_filter = (
+        "category",
         "stock",
     )
 
+    ordering = (
+        "-id",
+    )
 
-# =========================
+
+# =========================================================
 # CART ADMIN
-# =========================
+# =========================================================
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
@@ -70,10 +83,14 @@ class CartAdmin(admin.ModelAdmin):
         "product__name",
     )
 
+    list_filter = (
+        "product",
+    )
 
-# =========================
+
+# =========================================================
 # ORDERS ADMIN
-# =========================
+# =========================================================
 
 @admin.register(Orders)
 class OrdersAdmin(admin.ModelAdmin):
@@ -82,13 +99,21 @@ class OrdersAdmin(admin.ModelAdmin):
         "id",
         "user_id",
         "total_amount",
-        "status",
+        "payment_status",
+        "order_status",
+        "created_at",
     )
 
     search_fields = (
-        "status",
+        "payment_status",
+        "order_status",
     )
 
     list_filter = (
-        "status",
+        "payment_status",
+        "order_status",
+    )
+
+    ordering = (
+        "-id",
     )

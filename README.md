@@ -1,115 +1,229 @@
 # 🛒 Smart E-Commerce Platform
 
-A full-stack **Smart E-Commerce Platform** developed using **FastAPI, MySQL, SQLAlchemy, JWT, Auth0, React/Next.js, Django, and Postman**.
+A full-stack **Smart E-Commerce Platform** developed using **FastAPI, Django, MySQL, SQLAlchemy, JWT, Auth0, React/Next.js, Stripe, WebSockets, Email Notifications, and Postman**.
 
-The platform provides secure authentication, role-based access control, product management, product filtering, shopping cart management, order processing, payment handling, dashboard and analytics APIs, Swagger documentation, and Postman API testing.
+The platform provides secure authentication, role-based access control, product management, shopping cart management, order processing, Stripe payment integration, notifications, email notifications, real-time updates, Django administration, dashboard analytics, reporting, Swagger/OpenAPI documentation, and Postman API testing.
 
 ---
 
 # 📌 1. Project Overview
 
-The Smart E-Commerce Platform follows a modular architecture separating:
+The Smart E-Commerce Platform follows a modular architecture separating the application into:
 
-- Backend APIs
-- Authentication
-- Database
-- Product management
-- Cart management
-- Order management
-- Payment management
-- Admin dashboard
-- Frontend
-- API testing
+* FastAPI backend
+* Django Admin Panel
+* Database
+* Authentication
+* Authorization
+* Product management
+* Shopping cart management
+* Order management
+* Payment management
+* Notification system
+* Email notification system
+* Real-time WebSocket updates
+* Dashboard
+* Analytics
+* Reporting
+* Frontend
+* API testing
 
 The application supports three main user roles:
 
-- **Admin**
-- **Staff**
-- **Customer**
+* **Admin**
+* **Staff**
+* **Customer**
 
 ---
 
 # 🚀 2. Main Features
 
-## Authentication
+## 🔐 Authentication
 
-- User registration
-- User login
-- Password hashing
-- JWT access token
-- JWT refresh token
-- Current user authentication
-- Auth0 social login
-- Google Login
-- Facebook Login
+* User registration
+* User login
+* Password hashing
+* JWT access token
+* JWT refresh token
+* Current user authentication
+* Protected API endpoints
+* Auth0 social login
+* Google Login
+* Facebook Login
 
-## Authorization
+## 🛡️ Authorization
 
-- Role-Based Access Control (RBAC)
-- Admin role
-- Staff role
-- Customer role
-- Protected APIs
+* Role-Based Access Control (RBAC)
+* Admin role
+* Staff role
+* Customer role
+* Protected APIs
+* Role-based administrative operations
 
-## Product Management
+## 📦 Product Management
 
-- Create product
-- Get all products
-- Get product by ID
-- Get products by category
-- Update product
-- Delete product
-- Product price filtering
-- Product popularity filtering
-- Product stock filtering
-- Category filtering
-- Popular products sorting
+* Create product
+* Get all products
+* Get product by ID
+* Get products by category
+* Update product
+* Delete product
+* Category filtering
+* Minimum price filtering
+* Maximum price filtering
+* Popularity filtering
+* Stock filtering
+* Product stock management
+* Product image information
 
-## Shopping Cart
+## 🛒 Shopping Cart
 
-- Add product to cart
-- View cart
-- Update quantity
-- Increase quantity
-- Decrease quantity
-- Remove product
-- Automatic stock management
-- Automatic cart calculation
-- Item total calculation
-- Cart subtotal
-- Tax calculation
-- Grand total calculation
+* Add product to cart
+* View cart
+* Update cart quantity
+* Increase quantity
+* Decrease quantity
+* Remove cart item
+* Stock validation
+* Cart calculation
+* Item total calculation
+* Cart subtotal
+* Tax calculation
+* Grand total calculation
 
-## Orders
+## 📋 Order Management
 
-- Create order
-- View orders
-- View individual order
-- Order status management
-- Payment status management
+* Create order
+* View orders
+* View individual order
+* Update order status
+* Track payment status
+* Payment success
+* Payment failure
+* Order processing
 
-## Payment
+## 💳 Stripe Payment
 
-- Payment information
-- Payment processing
-- Payment status update
+* Stripe Checkout integration
+* Payment session creation
+* Payment success handling
+* Payment failure handling
+* Stripe webhook
+* Payment status management
+* Stripe test-mode support
 
-## Dashboard & Analytics
+## 🔔 Notification System
 
-- Dashboard statistics
-- User statistics
-- Product statistics
-- Cart statistics
-- Order statistics
-- Analytics APIs
-- Admin analytics
+* Create notification
+* Get notifications
+* Mark notification as read
+* Notification read/unread status
+* Order confirmation notifications
+* Payment notifications
+* Shipping notifications
+* Delivery notifications
 
-## API Testing
+## 📧 Email Notifications
 
-- Swagger UI
-- OpenAPI
-- Postman collection
-- Postman environment
+Email notifications support events such as:
+
+* Order confirmation
+* Payment success
+* Payment failure
+* Shipping updates
+* Order delivery updates
+
+Email can be configured using SMTP or another supported email service.
+
+## ⚡ Real-Time Updates
+
+WebSocket functionality supports real-time application updates such as:
+
+* Order status updates
+* Cart updates
+* Real-time notification events
+
+Example events:
+
+```text
+order_status_updated
+cart_updated
+```
+
+## 📊 Dashboard & Analytics
+
+The project provides analytics and dashboard information including:
+
+* Total users
+* Total products
+* Total cart items
+* Total orders
+* Total sales
+* Revenue trends
+* Top-selling products
+* Low-stock products
+* User statistics
+* Product statistics
+* Order statistics
+* Cart statistics
+* Admin analytics
+
+## 🧑‍💼 Django Admin Panel
+
+The Django Admin Panel provides management functionality for:
+
+### User Management
+
+* View users
+* Edit user details
+* Assign roles
+* Activate users
+* Deactivate users
+
+### Product Management
+
+* Add products
+* Edit products
+* Delete products
+* Update product information
+* Update stock
+* Manage product images
+
+### Order Management
+
+* View orders
+* Update order status
+* Track payment status
+
+### Analytics
+
+* Dashboard statistics
+* Sales information
+* Revenue information
+* Top-selling products
+* Low-stock alerts
+
+## 📄 Reports
+
+The system supports administrative reporting for:
+
+* Orders report
+* Sales report
+* User report
+
+Supported report formats:
+
+* CSV
+* PDF
+
+## 🧪 API Testing
+
+* Swagger UI
+* OpenAPI
+* Postman
+* Postman collection
+* Postman environment
+* Manual API testing
 
 ---
 
@@ -117,43 +231,75 @@ The application supports three main user roles:
 
 ## Backend
 
-- Python
-- FastAPI
-- SQLAlchemy
-- Pydantic
-- Python-Jose
-- JWT
-- MySQL
+* Python
+* FastAPI
+* SQLAlchemy
+* Pydantic
+* MySQL
+* Alembic
+* Uvicorn
 
-## Authentication
+## Authentication & Security
 
-- JWT
-- Password Hashing
-- Auth0
-- Google Login
-- Facebook Login
+* JWT
+* Python-Jose
+* Password hashing
+* OAuth2
+* Auth0
+* Google Login
+* Facebook Login
+* Role-Based Access Control
+
+## Admin Panel
+
+* Django
+* Django Admin
+
+## Payment
+
+* Stripe
+
+## Real-Time Communication
+
+* WebSockets
+
+## Email
+
+* SMTP
+* Email notification integration
 
 ## Frontend
 
-- React.js
-- Next.js
-- Axios
-- React Router
+* React.js
+* Next.js
+* Axios
+* React Router
 
-## Admin
+## Analytics
 
-- Django
+* Chart.js
+* Plotly
 
 ## API Testing
 
-- Swagger UI
-- Postman
+* Swagger UI
+* OpenAPI
+* Postman
+
+## Database
+
+* MySQL
+
+## Database Migration
+
+* Alembic
+* Django Migrations
 
 ## Development Tools
 
-- Git
-- GitHub
-- Visual Studio Code
+* Git
+* GitHub
+* Visual Studio Code
 
 ---
 
@@ -173,7 +319,9 @@ smart_ecommerce/
 │   │   │   ├── orders.py
 │   │   │   ├── payment.py
 │   │   │   ├── dashboard.py
-│   │   │   └── analytics.py
+│   │   │   ├── analytics.py
+│   │   │   ├── notifications.py
+│   │   │   └── stripe.py
 │   │   │
 │   │   ├── auth/
 │   │   │   ├── jwt_handler.py
@@ -186,11 +334,19 @@ smart_ecommerce/
 │   │   ├── dependencies.py
 │   │   └── main.py
 │   │
+│   ├── alembic/
+│   │   ├── versions/
+│   │   └── env.py
+│   │
+│   ├── alembic.ini
 │   ├── requirements.txt
-│   ├── .env
-│   └── ...
+│   └── .env
 │
 ├── django_admin/
+│   │
+│   ├── manage.py
+│   ├── django_admin/
+│   └── ...
 │
 ├── frontend/
 │   │
@@ -204,20 +360,21 @@ smart_ecommerce/
 │
 ├── postman/
 │   ├── collections/
-│   │   └── Smart E-Commerce Platform/
-│   │
 │   ├── environments/
 │   └── globals/
+│
+├── screenshots/
 │
 ├── .env.example
 ├── .gitignore
 └── README.md
+```
 
-> The exact folder structure may vary depending on the final project configuration.
+> The exact folder and file structure may vary depending on the final project configuration.
 
 ---
 
-# 4. Database Design
+# 🗄️ 5. Database Design
 
 The application uses **MySQL** as the primary database.
 
@@ -244,6 +401,7 @@ Stores product information.
 | `name`        | Product name              |
 | `description` | Product description       |
 | `price`       | Product price             |
+| `category`    | Product category          |
 | `stock`       | Available stock           |
 | `images`      | Product image information |
 
@@ -262,16 +420,30 @@ Stores products added to a user's cart.
 
 Stores customer orders.
 
-| Field          | Description          |
-| -------------- | -------------------- |
-| `id`           | Order ID             |
-| `user_id`      | Customer ID          |
-| `total_amount` | Total order amount   |
-| `status`       | Order/payment status |
+| Field            | Description        |
+| ---------------- | ------------------ |
+| `id`             | Order ID           |
+| `user_id`        | Customer ID        |
+| `total_amount`   | Total order amount |
+| `status`         | Order status       |
+| `payment_status` | Payment status     |
+
+## Notification
+
+Stores user notifications.
+
+| Field         | Description            |
+| ------------- | ---------------------- |
+| `id`          | Notification ID        |
+| `user_id`     | User ID                |
+| `type`        | Notification type      |
+| `message`     | Notification message   |
+| `read_status` | Read/unread status     |
+| `timestamp`   | Notification timestamp |
 
 ---
 
-# 5. Authentication System
+# 🔐 6. Authentication System
 
 The authentication system uses **JWT-based authentication** with access and refresh tokens.
 
@@ -280,8 +452,6 @@ The authentication system uses **JWT-based authentication** with access and refr
 ```http
 POST /auth/register
 ```
-
-Creates a new customer account.
 
 Example request:
 
@@ -293,6 +463,8 @@ Example request:
 }
 ```
 
+Creates a new customer account.
+
 ---
 
 ## Login
@@ -301,25 +473,30 @@ Example request:
 POST /auth/login
 ```
 
-Authenticates the user and generates JWT tokens.
+The login endpoint uses form-based authentication.
 
-Example request:
+Required fields:
 
-```json
-{
-  "email": "example@gmail.com",
-  "password": "your_password"
-}
+```text
+username
+password
 ```
 
-The response provides authentication tokens used to access protected APIs.
+Example:
+
+```text
+username = example@gmail.com
+password = your_password
+```
+
+The response provides an access token and refresh token.
 
 ---
 
 ## Refresh Token
 
 ```http
-POST /auth/refresh
+POST /auth/refresh?refresh_token=YOUR_REFRESH_TOKEN
 ```
 
 Generates a new access token using a valid refresh token.
@@ -332,9 +509,9 @@ Generates a new access token using a valid refresh token.
 GET /auth/me
 ```
 
-Returns information about the currently authenticated user.
+Protected endpoint.
 
-Protected request:
+Use:
 
 ```http
 Authorization: Bearer <access_token>
@@ -342,16 +519,16 @@ Authorization: Bearer <access_token>
 
 ---
 
-# 6. Social Login
+# 🌐 7. Social Login
 
-Auth0 is integrated to support social authentication.
+Auth0 is integrated for social authentication.
 
-Supported providers include:
+Supported providers:
 
 * Google
 * Facebook
 
-### Social Login Flow
+## Social Login Flow
 
 ```text
 User
@@ -360,11 +537,11 @@ Google / Facebook
   ↓
 Auth0
   ↓
-Token Verification
+Verify Token
   ↓
 Create / Find User
   ↓
-Application Authentication
+Application JWT
   ↓
 Authenticated User
 ```
@@ -377,7 +554,7 @@ POST /auth/social-login
 
 ---
 
-# 7. Role-Based Access Control
+# 🛡️ 8. Role-Based Access Control
 
 The application implements three main roles.
 
@@ -385,83 +562,175 @@ The application implements three main roles.
 
 Administrators can:
 
-* Manage products
 * Manage users
+* Manage products
+* Manage orders
+* View dashboard
+* View analytics
 * Access administrative APIs
-* View dashboard information
-* Access analytics
+* Manage stock
+* Access reports
 
 ## Staff
 
-Staff users can access permitted operational functionality according to their assigned role and permissions.
+Staff users can access permitted operational functionality according to their assigned permissions.
 
 ## Customer
 
 Customers can:
 
 * View products
+* Filter products
 * Add products to cart
 * Update cart items
 * Remove cart items
 * Create orders
 * Complete payment operations
 * View their orders
+* Receive notifications
 
 Protected endpoints validate the user's JWT and role before allowing access.
 
 ---
 
-# 8. Product APIs
+# 📦 9. Product APIs
 
-### Get Products
+## Get Products
 
 ```http
 GET /products/
 ```
 
-### Create Product
+Supports filters such as:
+
+```text
+category
+min_price
+max_price
+min_popularity
+in_stock
+```
+
+Example:
+
+```http
+GET /products/?category=Electronics
+```
+
+---
+
+## Create Product
 
 ```http
 POST /products/
 ```
 
-### Get Product
+Requires authentication.
+
+Example:
+
+```json
+{
+  "name": "Test Laptop",
+  "description": "Test laptop for ecommerce",
+  "price": 50000,
+  "category": "Electronics",
+  "stock": 10,
+  "images": "laptop.jpg"
+}
+```
+
+---
+
+## Get Product
 
 ```http
 GET /products/{product_id}
 ```
 
-### Delete Product
+Example:
+
+```http
+GET /products/1
+```
+
+---
+
+## Update Product
+
+```http
+PUT /products/{product_id}
+```
+
+Requires authentication.
+
+---
+
+## Delete Product
 
 ```http
 DELETE /products/{product_id}
 ```
 
-Product creation and administrative operations are protected using role-based authorization.
+Requires authentication and appropriate authorization.
 
 ---
 
-# 9. Cart APIs
+## Get Products By Category
 
-### Add Product to Cart
+```http
+GET /products/category/{category}
+```
+
+Example:
+
+```http
+GET /products/category/Electronics
+```
+
+---
+
+# 🛒 10. Cart APIs
+
+## Add Product to Cart
 
 ```http
 POST /cart/add
 ```
 
-### View Cart
+Parameters:
 
-```http
-GET /cart/
+```text
+user_id
+product_id
+quantity
 ```
 
-### Update Cart
+Example:
 
 ```http
-PUT /cart/update/{cart_id}
+POST /cart/add?user_id=1&product_id=2&quantity=1
 ```
 
-### Remove Cart Item
+---
+
+## View Cart
+
+```http
+GET /cart/?user_id=1
+```
+
+---
+
+## Update Cart
+
+```http
+PUT /cart/update/{cart_id}?quantity=2
+```
+
+---
+
+## Remove Cart Item
 
 ```http
 DELETE /cart/remove/{cart_id}
@@ -469,128 +738,536 @@ DELETE /cart/remove/{cart_id}
 
 ---
 
-# 10. Order APIs
+# 📋 11. Order APIs
 
-### Create Order
-
-```http
-POST /orders/create
-```
-
-### Get Orders
+## Create Order
 
 ```http
-GET /orders/
+POST /orders/create?user_id=1
 ```
 
-### Get Individual Order
+---
+
+## Get Orders
+
+```http
+GET /orders/?user_id=1
+```
+
+---
+
+## Get Individual Order
 
 ```http
 GET /orders/{order_id}
 ```
 
-### Payment Success
+---
+
+## Payment Success
 
 ```http
 PUT /orders/{order_id}/pay
 ```
 
+Example:
+
+```http
+PUT /orders/1/pay
+```
+
 ---
 
-# 11. Payment APIs
+## Update Order Status
 
-### Get Payment Information
+```http
+PUT /orders/{order_id}/status?status=shipped
+```
+
+Example:
+
+```http
+PUT /orders/1/status?status=shipped
+```
+
+Possible statuses depend on the application's configured order-status values.
+
+---
+
+# 💳 12. Payment APIs
+
+## Get Payment Information
 
 ```http
 GET /payment/{order_id}
 ```
 
-### Complete Payment
+Example:
 
 ```http
-POST /payment/{order_id}/pay
+GET /payment/1
+```
+
+---
+
+## Payment Failed
+
+```http
+PUT /payment/{order_id}/failed
+```
+
+Example:
+
+```http
+PUT /payment/1/failed
+```
+
+---
+
+## Payment Success
+
+```http
+PUT /orders/{order_id}/pay
+```
+
+Example:
+
+```http
+PUT /orders/1/pay
 ```
 
 Payment operations update the corresponding order/payment status.
 
 ---
 
-# 12. Dashboard and Analytics
+# 💰 13. Stripe Integration
 
-## Dashboard
+The project integrates Stripe Checkout for payment processing.
+
+## Stripe Checkout Flow
+
+```text
+Customer
+   ↓
+Create Order
+   ↓
+Checkout
+   ↓
+Stripe Checkout
+   ↓
+Customer Payment
+   ↓
+Stripe
+   ↓
+Webhook
+   ↓
+Payment Status Update
+   ↓
+Order Updated
+   ↓
+Notification
+```
+
+## Stripe Webhook
+
+```http
+POST /stripe/webhook
+```
+
+The webhook validates the Stripe signature before processing the event.
+
+### Important
+
+The Stripe webhook cannot be tested by simply sending an empty POST request.
+
+If the endpoint returns:
+
+```json
+{
+  "detail": "Missing Stripe signature"
+}
+```
+
+the request does not contain the required Stripe signature header.
+
+Stripe test events or a properly configured Stripe webhook should be used for webhook testing.
+
+---
+
+# 🔔 14. Notification System
+
+The notification system provides application notifications for users.
+
+## Get Notifications
+
+```http
+GET /notifications/?user_id=1
+```
+
+---
+
+## Create Notification
+
+```http
+POST /notifications/?user_id=1&type=order&message=Order%20confirmed
+```
+
+Example parameters:
+
+```text
+user_id = 1
+type = order
+message = Order confirmed
+```
+
+---
+
+## Mark Notification as Read
+
+```http
+POST /notifications/read?notification_id=1
+```
+
+---
+
+# 📧 15. Email Notifications
+
+The application supports email notifications for important order events.
+
+Examples:
+
+* Order confirmation
+* Payment successful
+* Payment failed
+* Order shipped
+* Order delivered
+
+Email services can be configured using:
+
+* SMTP
+* SendGrid
+* AWS SES
+
+Email credentials should be stored in environment variables and must not be committed to GitHub.
+
+---
+
+# ⚡ 16. Real-Time WebSocket Updates
+
+WebSockets are used to provide real-time updates.
+
+Supported events include:
+
+```text
+order_status_updated
+cart_updated
+```
+
+Example flow:
+
+```text
+Order Status Changed
+        ↓
+Backend Event
+        ↓
+WebSocket
+        ↓
+Connected Client
+        ↓
+Real-Time UI Update
+```
+
+---
+
+# 📊 17. Dashboard
+
+Dashboard endpoint:
 
 ```http
 GET /dashboard/
 ```
 
-Provides high-level application statistics such as:
+Provides high-level application statistics.
+
+Examples:
 
 * Total users
 * Total products
 * Total cart items
 * Total orders
+* Sales statistics
+* Application information
 
-## Analytics
+---
+
+# 📈 18. Analytics
+
+Analytics endpoint:
 
 ```http
 GET /analytics/
 ```
 
-Provides application analytics.
-
-## Admin Users
-
-```http
-GET /admin/users
-```
-
-## Admin Analytics
+Admin analytics:
 
 ```http
 GET /admin/analytics
 ```
 
-Administrative APIs are protected using role-based authorization.
+Analytics can include:
+
+* Total sales
+* Revenue trends
+* Top-selling products
+* Low-stock products
+* User statistics
+* Product statistics
+* Order statistics
 
 ---
 
-# 13. API Documentation
+# 👥 19. Admin APIs
 
-FastAPI automatically provides Swagger/OpenAPI documentation.
+## Get Users
 
-After starting the backend, open:
-
-```text
-http://127.0.0.1:8000/docs
+```http
+GET /admin/users
 ```
 
-OpenAPI specification:
-
-```text
-http://127.0.0.1:8000/openapi.json
-```
-
-Swagger UI can be used to interactively test the API endpoints.
+Requires authentication.
 
 ---
 
-# 14. Running the Backend
+## Get Admin Analytics
 
-## Step 1 — Navigate to Backend
+```http
+GET /admin/analytics
+```
+
+Requires authentication.
+
+Protected admin APIs require:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+# 🧑‍💼 20. Django Admin Panel
+
+The Django Admin Panel provides administrative management functionality.
+
+Start Django:
 
 ```powershell
-cd fastapi_backend
+python manage.py runserver 8001
 ```
 
-## Step 2 — Activate Virtual Environment
+Open:
 
-For Windows PowerShell:
+```text
+http://127.0.0.1:8001/admin/
+```
+
+The administrator can manage:
+
+* Users
+* Roles
+* Products
+* Stock
+* Orders
+* Payment status
+* Dashboard information
+* Reports
+* Analytics
+
+---
+
+# 📄 21. Reports
+
+Administrative reports include:
+
+## Orders Report
+
+Contains order information such as:
+
+* Order ID
+* User
+* Amount
+* Order status
+* Payment status
+* Date
+
+## Sales Report
+
+Contains sales-related information such as:
+
+* Sales totals
+* Revenue
+* Order information
+* Product sales
+
+## User Report
+
+Contains user information such as:
+
+* User ID
+* Name
+* Email
+* Role
+* Account information
+
+Supported formats:
+
+* CSV
+* PDF
+
+---
+
+# 🗄️ 22. MySQL Setup
+
+Make sure MySQL Server is installed and running.
+
+Create the database:
+
+```sql
+CREATE DATABASE smart_ecommerce;
+```
+
+Check the database:
+
+```sql
+SHOW DATABASES;
+```
+
+Select the database:
+
+```sql
+USE smart_ecommerce;
+```
+
+Check tables:
+
+```sql
+SHOW TABLES;
+```
+
+---
+
+# 🔄 23. Alembic Database Migrations
+
+The FastAPI backend uses Alembic for database migrations.
+
+Navigate to:
+
+```powershell
+cd "C:\Fullstack developer\smart_ecommerce\fastapi_backend"
+```
+
+Activate the virtual environment:
 
 ```powershell
 .\venv\Scripts\Activate.ps1
 ```
 
-If the virtual environment has a different name, activate the corresponding environment.
+Check Alembic:
+
+```powershell
+alembic --version
+```
+
+If the command is not recognized, use:
+
+```powershell
+python -m alembic --version
+```
+
+## Create Migration
+
+After changing SQLAlchemy models:
+
+```powershell
+python -m alembic revision --autogenerate -m "update database schema"
+```
+
+## Apply Migration
+
+```powershell
+python -m alembic upgrade head
+```
+
+## Check Current Migration
+
+```powershell
+python -m alembic current
+```
+
+## Check Migration History
+
+```powershell
+python -m alembic history
+```
+
+---
+
+# 🐍 24. Django Migrations
+
+The Django Admin application uses Django's migration system.
+
+Navigate to:
+
+```powershell
+cd "C:\Fullstack developer\smart_ecommerce\django_admin"
+```
+
+Check migrations:
+
+```powershell
+python manage.py showmigrations
+```
+
+Apply migrations:
+
+```powershell
+python manage.py migrate
+```
+
+Create migrations after changing Django models:
+
+```powershell
+python manage.py makemigrations
+```
+
+Then apply:
+
+```powershell
+python manage.py migrate
+```
+
+---
+
+# 🚀 25. Running the FastAPI Backend
+
+## Step 1 — Open PowerShell
+
+Navigate to the backend:
+
+```powershell
+cd "C:\Fullstack developer\smart_ecommerce\fastapi_backend"
+```
+
+## Step 2 — Activate Virtual Environment
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+You should see:
+
+```text
+(venv)
+```
 
 ## Step 3 — Install Dependencies
 
@@ -600,7 +1277,7 @@ pip install -r requirements.txt
 
 ## Step 4 — Configure Environment Variables
 
-Create a local `.env` file in the backend directory.
+Create a local `.env` file.
 
 Example:
 
@@ -616,41 +1293,129 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-If Auth0 is configured, add the required Auth0 configuration values to the local environment.
+Add Auth0 and Stripe variables if they are used by the project.
 
-> **Important:** Never commit real passwords, database credentials, secret keys, Auth0 secrets, or other sensitive credentials to GitHub.
+### Important
 
-## Step 5 — Start FastAPI
+Never commit real credentials to GitHub.
+
+---
+
+# ▶️ 26. Start FastAPI
+
+Run:
 
 ```powershell
 uvicorn app.main:app --reload
 ```
 
-The API will normally be available at:
+The backend will normally run at:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Swagger documentation:
+Swagger UI:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
----
-
-# 15. Postman Collection
-
-A Postman collection has been created for testing the application's APIs.
-
-The Postman files are stored under:
+OpenAPI JSON:
 
 ```text
-postman/
+http://127.0.0.1:8000/openapi.json
 ```
 
-The collection includes API requests for:
+---
+
+# 🧑‍💼 27. Running Django Admin
+
+Open a second PowerShell window.
+
+Navigate to:
+
+```powershell
+cd "C:\Fullstack developer\smart_ecommerce\django_admin"
+```
+
+Apply migrations:
+
+```powershell
+python manage.py migrate
+```
+
+Create a superuser if required:
+
+```powershell
+python manage.py createsuperuser
+```
+
+Start Django:
+
+```powershell
+python manage.py runserver 8001
+```
+
+Django:
+
+```text
+http://127.0.0.1:8001
+```
+
+Django Admin:
+
+```text
+http://127.0.0.1:8001/admin/
+```
+
+---
+
+# 🧪 28. API Testing With Swagger
+
+After starting FastAPI, open:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+Swagger provides interactive testing for the API.
+
+Recommended testing sequence:
+
+```text
+Register
+   ↓
+Login
+   ↓
+Get Access Token
+   ↓
+Authorize
+   ↓
+Test Protected APIs
+   ↓
+Products
+   ↓
+Cart
+   ↓
+Orders
+   ↓
+Payment
+   ↓
+Notifications
+   ↓
+Analytics
+   ↓
+Admin
+```
+
+---
+
+# 📮 29. API Testing With Postman
+
+The project APIs were tested using Postman.
+
+Main API groups:
 
 ```text
 Authentication
@@ -658,199 +1423,570 @@ Products
 Cart
 Orders
 Payment
+Notifications
 Dashboard
 Analytics
 Admin
+Stripe
 ```
 
-### Authentication Requests
+Base URL:
+
+```text
+http://127.0.0.1:8000
+```
+
+## Authentication Testing
+
+### 1. Register
 
 ```http
 POST /auth/register
-POST /auth/login
-POST /auth/refresh
-GET  /auth/me
-POST /auth/social-login
 ```
 
-The Postman environment uses:
-
-```text
-baseUrl = http://127.0.0.1:8000
-```
-
-The collection can be opened in Postman and used to test the backend APIs.
-
----
-
-# 16. Authentication Testing Flow
-
-Recommended authentication testing sequence:
-
-```text
-1. Register
-      ↓
-2. Login
-      ↓
-3. Receive access token
-      ↓
-4. Call /auth/me
-      ↓
-5. Use refresh token
-      ↓
-6. Call /auth/refresh
-      ↓
-7. Test protected APIs
-```
-
-For protected APIs:
+### 2. Login
 
 ```http
-Authorization: Bearer <access_token>
+POST /auth/login
+```
+
+### 3. Copy Access Token
+
+Copy the `access_token` from the login response.
+
+### 4. Test Protected APIs
+
+In Postman:
+
+```text
+Authorization
+    ↓
+Type: Bearer Token
+    ↓
+Token: <access_token>
+```
+
+Then send the request.
+
+---
+
+# 📋 30. Postman Collection
+
+The project includes a Postman API collection containing requests for the major backend APIs.
+
+Recommended collection structure:
+
+```text
+Smart E-Commerce Platform
+│
+├── Authentication
+│   ├── Register
+│   ├── Login
+│   ├── Refresh Token
+│   ├── Current User
+│   └── Social Login
+│
+├── Products
+│   ├── Get Products
+│   ├── Create Product
+│   ├── Get Product
+│   ├── Update Product
+│   ├── Delete Product
+│   └── Get By Category
+│
+├── Cart
+│   ├── Add To Cart
+│   ├── View Cart
+│   ├── Update Cart
+│   └── Remove Cart
+│
+├── Orders
+│   ├── Create Order
+│   ├── Get Orders
+│   ├── Get Order
+│   ├── Payment Success
+│   └── Update Status
+│
+├── Payment
+│   ├── Get Payment
+│   └── Payment Failed
+│
+├── Notifications
+│   ├── Get Notifications
+│   ├── Create Notification
+│   └── Mark Read
+│
+├── Dashboard
+│   └── Dashboard
+│
+├── Analytics
+│   └── Analytics
+│
+├── Admin
+│   ├── Users
+│   └── Analytics
+│
+└── Stripe
+    └── Webhook
 ```
 
 ---
 
-# 17. Security
+# 🔑 31. Protected API Authorization
 
-The application implements several security mechanisms:
+Protected APIs require a JWT access token.
+
+In Postman:
+
+```text
+Authorization
+→ Bearer Token
+→ Enter access_token
+```
+
+Example:
+
+```http
+Authorization: Bearer eyJ...
+```
+
+If the token is missing, the API may return:
+
+```json
+{
+  "detail": "Not authenticated"
+}
+```
+
+---
+
+# 🧪 32. API Testing Status
+
+The API endpoints have been manually tested using Postman and Swagger.
+
+Testing covers:
+
+* User registration
+* User login
+* JWT authentication
+* JWT refresh
+* Current user
+* Product APIs
+* Product filtering
+* Cart APIs
+* Order APIs
+* Payment APIs
+* Stripe checkout
+* Notifications
+* Notification read
+* Dashboard
+* Analytics
+* Admin APIs
+* Authorization
+* Error responses
+* Validation responses
+
+Expected successful HTTP responses include:
+
+```text
+200 OK
+201 Created
+```
+
+Expected error responses may include:
+
+```text
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+422 Validation Error
+```
+
+---
+
+# 🔐 33. Security
+
+The application implements:
 
 * Password hashing
 * JWT authentication
 * Access token expiration
 * Refresh token support
-* Protected API routes
+* Protected routes
+* OAuth2 authentication
 * Role-based authorization
 * Auth0 authentication
 * Environment-based configuration
+* Stripe webhook signature validation
 
-Sensitive configuration is kept outside the source code.
+Sensitive values must be stored in environment variables.
 
-The real `.env` file should remain local and should not be uploaded to GitHub.
-
----
-
-# 18. Testing
-
-The APIs can be tested using:
-
-## Swagger UI
+Never upload:
 
 ```text
-http://127.0.0.1:8000/docs
+.env
+passwords
+database credentials
+JWT secret keys
+Auth0 secrets
+Stripe secret keys
+API keys
 ```
 
-## Postman
-
-The Postman collection contains requests for the application's major API modules.
-
-Testing includes:
-
-* User registration
-* User login
-* JWT token generation
-* JWT token refresh
-* Current user authentication
-* Social login
-* Product operations
-* Cart operations
-* Order operations
-* Payment operations
-* Role-based authorization
-* Dashboard APIs
-* Analytics APIs
+to GitHub.
 
 ---
 
-# 19. Authentication Flow
+# 🔒 34. `.gitignore`
+
+The project should ignore sensitive and generated files such as:
 
 ```text
-                 ┌──────────────────┐
-                 │      User        │
-                 └────────┬─────────┘
-                          │
-                          ▼
-                 ┌──────────────────┐
-                 │    Register      │
-                 └────────┬─────────┘
-                          │
-                          ▼
-                 ┌──────────────────┐
-                 │      Login       │
-                 └────────┬─────────┘
-                          │
-                          ▼
-                 ┌──────────────────┐
-                 │    JWT Tokens    │
-                 └────────┬─────────┘
-                          │
-                          ▼
-                 ┌──────────────────┐
-                 │ Protected APIs   │
-                 └────────┬─────────┘
-                          │
-                  ┌───────┴────────┐
-                  ▼                ▼
-              Customer           Admin
-                  │                │
-                  ▼                ▼
-              Cart/Orders     Products/
-                              Analytics
+.env
+venv/
+__pycache__/
+*.pyc
+node_modules/
+*.log
+```
+
+A `.env.example` file can be committed with placeholder values.
+
+Example:
+
+```env
+DB_USER=your_user
+DB_PASSWORD=your_password
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=smart_ecommerce
+
+SECRET_KEY=your_secret_key
 ```
 
 ---
 
-# 20. Project Deliverables
+# 🔄 35. Complete Application Flow
 
-The completed assignment includes:
+```text
+                         USER
+                           │
+                           ▼
+                    Authentication
+                           │
+                 ┌─────────┴─────────┐
+                 │                   │
+              Customer              Admin
+                 │                   │
+                 ▼                   ▼
+             Products           Django Admin
+                 │                   │
+                 ▼                   ▼
+               Cart             Users / Products
+                 │              Orders / Reports
+                 ▼                   │
+              Checkout              │
+                 │                   │
+                 ▼                   ▼
+              Stripe             Analytics
+                 │                   │
+                 ▼                   │
+             Payment                │
+                 │                   │
+                 ▼                   │
+             Order Update ◄─────────┘
+                 │
+          ┌──────┴──────┐
+          ▼             ▼
+    Notification      Email
+          │
+          ▼
+       WebSocket
+          │
+          ▼
+     Real-Time User
+```
+
+---
+
+# 📈 36. Analytics Flow
+
+```text
+Database
+   ↓
+Orders
+   ↓
+Sales Data
+   ↓
+Analytics API
+   ↓
+Dashboard
+   ↓
+Charts
+```
+
+Analytics include:
+
+```text
+Total Sales
+Revenue Trends
+Top-Selling Products
+Low-Stock Products
+```
+
+---
+
+# 💳 37. Payment Flow
+
+```text
+Customer
+   ↓
+Cart
+   ↓
+Create Order
+   ↓
+Checkout
+   ↓
+Stripe
+   ↓
+Payment
+   ↓
+Stripe Webhook
+   ↓
+Verify Signature
+   ↓
+Update Payment Status
+   ↓
+Update Order Status
+   ↓
+Create Notification
+   ↓
+Send Email
+```
+
+---
+
+# 🔔 38. Notification Flow
+
+```text
+Order Event
+     ↓
+Backend
+     ↓
+Create Notification
+     ↓
+Database
+     ↓
+Email Notification
+     ↓
+WebSocket Event
+     ↓
+User Interface
+```
+
+---
+
+# 📸 39. Screenshots / Demo
+
+Project screenshots should be stored in:
+
+```text
+screenshots/
+```
+
+Recommended screenshots:
+
+```text
+screenshots/
+├── login.png
+├── register.png
+├── products.png
+├── product-management.png
+├── cart.png
+├── orders.png
+├── payment.png
+├── notifications.png
+├── dashboard.png
+├── analytics.png
+├── admin-users.png
+├── admin-products.png
+├── admin-orders.png
+├── reports.png
+├── swagger.png
+├── postman.png
+└── stripe-checkout.png
+```
+
+A demo video can also be included if required by the assignment.
+
+---
+
+# 📦 40. Final Deliverables
+
+The completed project includes:
 
 * FastAPI backend
-* MySQL database integration
-* User registration and login
-* JWT access token authentication
-* JWT refresh token authentication
-* Current user authentication
-* Auth0 social login integration
+* Django Admin Panel
+* MySQL database
+* SQLAlchemy
+* Alembic migrations
+* Django migrations
+* User authentication
+* JWT access tokens
+* JWT refresh tokens
+* Auth0 social login
+* Google Login
+* Facebook Login
 * Role-Based Access Control
-* Admin, Staff, and Customer roles
-* Product APIs
-* Cart APIs
-* Order APIs
-* Payment APIs
-* Dashboard APIs
-* Analytics APIs
+* Admin role
+* Staff role
+* Customer role
+* Product management
+* Product filtering
+* Cart management
+* Order management
+* Payment processing
+* Stripe integration
+* Stripe webhook
+* Notification system
+* Email notifications
+* WebSocket real-time updates
+* Dashboard
+* Analytics
+* Sales information
+* Revenue trends
+* Top-selling products
+* Low-stock alerts
+* CSV reports
+* PDF reports
 * Swagger/OpenAPI documentation
-* Postman API collection
-* Postman environment
-* `.gitignore`
-* `.env.example`
-* Project documentation
+* Postman API testing
+* Postman collection
+* Setup documentation
 * GitHub repository
 
 ---
 
-# 21. Future Enhancements
+# 🐳 41. Optional Docker Deployment
 
-Possible future improvements include:
+Docker deployment can be added as a future enhancement.
 
-* Razorpay or Stripe payment gateway integration
-* Product image upload using cloud storage
-* Product categories
-* Product search and filtering
-* Pagination
-* Email notifications
-* Docker deployment
-* CI/CD pipeline
-* Automated API testing
-* Production database configuration
-* Frontend integration
-* Cloud deployment
+Possible services:
+
+```text
+FastAPI
+Django
+MySQL
+Frontend
+Nginx
+```
+
+Example architecture:
+
+```text
+Docker
+│
+├── FastAPI Container
+├── Django Container
+├── MySQL Container
+└── Frontend Container
+```
 
 ---
 
-# 22. GitHub Repository
+# 🔮 42. Future Enhancements
 
-The project source code and documentation are available on GitHub:
+Possible future improvements include:
+
+* Docker deployment
+* Cloud deployment
+* CI/CD pipeline
+* Automated API testing
+* Advanced analytics
+* Product search
+* Pagination
+* Cloud image storage
+* Production email service
+* Production payment configuration
+* Redis caching
+* Background task processing
+* Monitoring and logging
+
+---
+
+# 🧑‍💻 43. Installation Summary
+
+For a new machine:
+
+```text
+1. Clone the repository
+2. Install Python
+3. Install MySQL
+4. Create the database
+5. Navigate to FastAPI backend
+6. Create/activate virtual environment
+7. Install requirements
+8. Configure .env
+9. Run Alembic migrations
+10. Start FastAPI
+11. Navigate to Django Admin
+12. Install Django dependencies
+13. Run Django migrations
+14. Create superuser
+15. Start Django
+16. Open Swagger
+17. Import/test Postman collection
+18. Configure Stripe test credentials if required
+```
+
+---
+
+# 📥 44. GitHub Setup
+
+Clone the project:
+
+```powershell
+git clone https://github.com/RAMKUMAR63815/smart-ecommerce-platform.git
+```
+
+Navigate into the project:
+
+```powershell
+cd smart-ecommerce-platform
+```
+
+Check Git status:
+
+```powershell
+git status
+```
+
+---
+
+# 📤 45. GitHub Update
+
+After making changes:
+
+```powershell
+git add .
+```
+
+Commit:
+
+```powershell
+git commit -m "Update project documentation"
+```
+
+Push:
+
+```powershell
+git push
+```
+
+---
+
+# 🌐 46. GitHub Repository
 
 **Smart E-Commerce Platform**
 
@@ -858,17 +1994,47 @@ https://github.com/RAMKUMAR63815/smart-ecommerce-platform
 
 ---
 
-# 23. Author
+# 👨‍💻 47. Author
 
 **Ram Kumar**
 
 Smart E-Commerce Platform
-Python | FastAPI | SQLAlchemy | MySQL | JWT | Auth0 | Postman | GitHub
+
+Python | FastAPI | Django | SQLAlchemy | MySQL | JWT | Auth0 | Stripe | React | WebSockets | Postman | GitHub
 
 ---
 
-# Conclusion
+# ✅ 48. Project Completion
 
-The Smart E-Commerce Platform demonstrates a modular and secure e-commerce backend architecture with authentication, authorization, database management, product management, cart and order processing, payment handling, social login, analytics, API documentation, and Postman-based API testing.
+The Smart E-Commerce Platform has been developed as a full-stack e-commerce project demonstrating:
 
-The project provides a strong foundation for a complete full-stack e-commerce application and has been prepared as a complete assignment submission.
+* Secure authentication
+* Role-based authorization
+* Product management
+* Shopping cart management
+* Order processing
+* Payment integration
+* Stripe Checkout
+* Notifications
+* Email notifications
+* Real-time WebSocket updates
+* Django Admin Panel
+* Dashboard
+* Analytics
+* Reporting
+* Database migrations
+* API documentation
+* Postman API testing
+* GitHub version control
+
+The project provides a complete foundation for a production-oriented full-stack e-commerce application.
+
+---
+
+# 🏁 Conclusion
+
+The Smart E-Commerce Platform demonstrates a modular full-stack architecture combining **FastAPI for backend APIs, Django for administration, MySQL for data storage, JWT/Auth0 for authentication, Stripe for payments, WebSockets for real-time communication, email notifications for user communication, and Postman/Swagger for API testing**.
+
+The project covers the required e-commerce functionality together with administration, analytics, reporting, authentication, payments, notifications, real-time updates, database migrations, and API documentation.
+
+**Project Status: Completed**

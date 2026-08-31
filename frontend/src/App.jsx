@@ -22,6 +22,7 @@ import PaymentCancelled from "./pages/PaymentCancelled";
 
 import NotificationListener from "./components/NotificationListener";
 import NotificationUI from "./components/NotificationUI";
+import AdminReturns from "./pages/AdminReturns";
 
 
 function App() {
@@ -443,6 +444,10 @@ function App() {
             <Dashboard />
           }
         />
+        <Route
+  path="/admin/returns"
+  element={<AdminReturns />}
+/>
 
       </Routes>
 

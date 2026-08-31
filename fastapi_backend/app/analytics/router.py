@@ -15,7 +15,7 @@ def analytics():
     total_users = db.query(User).count()
     total_products = db.query(Product).count()
     total_orders = db.query(Order).count()
-
+    
     revenue = 0
 
     orders = db.query(Order).all()

@@ -95,3 +95,23 @@ class NotificationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+# =========================================================
+# RETURN REQUEST SCHEMAS
+# =========================================================
+
+class ReturnRequestCreate(BaseModel):
+    reason: str
+    comment: Optional[str] = None
+
+
+class ReturnRequestResponse(BaseModel):
+    id: int
+    order_id: int
+    user_id: int
+    reason: str
+    comment: Optional[str]
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

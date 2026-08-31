@@ -1,5 +1,6 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import Dict, List
+import asyncio
 
 
 router = APIRouter(
@@ -14,7 +15,18 @@ router = APIRouter(
 class ConnectionManager:
 
     def __init__(self):
+
+        # user_id -> list of WebSocket connections
+        #
+        # Example:
+        #
+        # {
+        #     6: [websocket1],
+        #     10: [websocket2, websocket3]
+        # }
+        #
         self.active_connections: Dict[int, List[WebSocket]] = {}
+
 
     # =====================================================
     # CONNECT
@@ -29,6 +41,7 @@ class ConnectionManager:
         await websocket.accept()
 
         if user_id not in self.active_connections:
+
             self.active_connections[user_id] = []
 
         self.active_connections[user_id].append(websocket)
@@ -59,13 +72,16 @@ class ConnectionManager:
         websocket: WebSocket
     ):
 
-        if user_id in self.active_connections:
+        if user_id not in self.active_connections:
+            return
 
-            if websocket in self.active_connections[user_id]:
-                self.active_connections[user_id].remove(websocket)
+        if websocket in self.active_connections[user_id]:
 
-            if not self.active_connections[user_id]:
-                del self.active_connections[user_id]
+            self.active_connections[user_id].remove(websocket)
+
+        if not self.active_connections[user_id]:
+
+            del self.active_connections[user_id]
 
         print()
         print("=" * 70)
@@ -80,7 +96,7 @@ class ConnectionManager:
 
 
     # =====================================================
-    # SEND TO USER
+    # SEND MESSAGE TO USER
     # =====================================================
 
     async def send_to_user(
@@ -104,7 +120,7 @@ class ConnectionManager:
         print("=" * 70)
 
         # -------------------------------------------------
-        # NO CONNECTION
+        # USER NOT CONNECTED
         # -------------------------------------------------
 
         if not connections:
@@ -123,14 +139,15 @@ class ConnectionManager:
 
             return False
 
+
         # -------------------------------------------------
-        # SEND
+        # SEND MESSAGE
         # -------------------------------------------------
 
         sent_successfully = False
         disconnected = []
 
-        for websocket in connections:
+        for websocket in list(connections):
 
             try:
 
@@ -152,6 +169,7 @@ class ConnectionManager:
 
                 disconnected.append(websocket)
 
+
         # -------------------------------------------------
         # REMOVE DEAD CONNECTIONS
         # -------------------------------------------------
@@ -162,6 +180,7 @@ class ConnectionManager:
                 user_id,
                 websocket
             )
+
 
         print(
             "WebSocket send result:",
@@ -174,6 +193,29 @@ class ConnectionManager:
 
 
     # =====================================================
+    # BROADCAST TO ALL USERS
+    # =====================================================
+
+    async def broadcast(
+        self,
+        message: dict
+    ):
+
+        print()
+        print("=" * 70)
+        print("WEBSOCKET BROADCAST")
+        print("Message:", message)
+        print("=" * 70)
+
+        for user_id in list(self.active_connections.keys()):
+
+            await self.send_to_user(
+                user_id,
+                message
+            )
+
+
+    # =====================================================
     # CHECK USER CONNECTION
     # =====================================================
 
@@ -183,6 +225,23 @@ class ConnectionManager:
     ):
 
         return bool(
+            self.active_connections.get(
+                user_id,
+                []
+            )
+        )
+
+
+    # =====================================================
+    # GET CONNECTION COUNT
+    # =====================================================
+
+    def get_user_connection_count(
+        self,
+        user_id: int
+    ):
+
+        return len(
             self.active_connections.get(
                 user_id,
                 []
@@ -230,14 +289,22 @@ async def websocket_endpoint(
         # -------------------------------------------------
 
         await websocket.send_json({
+
             "event": "connected",
+
             "user_id": user_id,
-            "message": "WebSocket connected successfully"
+
+            "message":
+                "WebSocket connected successfully"
+
         })
 
+
         print(
-            f"Connection confirmation sent to user {user_id}"
+            f"Connection confirmation sent "
+            f"to user {user_id}"
         )
+
 
         # -------------------------------------------------
         # KEEP CONNECTION ALIVE
@@ -245,12 +312,23 @@ async def websocket_endpoint(
 
         while True:
 
-            data = await websocket.receive_text()
+            try:
 
-            print(
-                f"WebSocket message received "
-                f"from user {user_id}: {data}"
-            )
+                data = await websocket.receive_text()
+
+                print(
+                    f"WebSocket message received "
+                    f"from user {user_id}: {data}"
+                )
+
+            except WebSocketDisconnect:
+
+                raise
+
+
+    # -----------------------------------------------------
+    # NORMAL DISCONNECT
+    # -----------------------------------------------------
 
     except WebSocketDisconnect:
 
@@ -263,6 +341,11 @@ async def websocket_endpoint(
             websocket
         )
 
+
+    # -----------------------------------------------------
+    # OTHER ERROR
+    # -----------------------------------------------------
+
     except Exception as e:
 
         print(
@@ -273,6 +356,39 @@ async def websocket_endpoint(
             user_id,
             websocket
         )
+
+
+# =========================================================
+# ORDER CREATED
+# =========================================================
+
+async def send_order_created(
+    user_id: int,
+    order_id: int
+):
+
+    message = {
+
+        "event": "order_created",
+
+        "order_id": order_id,
+
+        "message":
+            f"Your order #{order_id} has been created successfully."
+
+    }
+
+    print()
+    print("SENDING ORDER CREATED UPDATE")
+    print(
+        f"User={user_id}, "
+        f"Order={order_id}"
+    )
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
 
 
 # =========================================================
@@ -295,15 +411,48 @@ async def send_order_update(
 
         "message":
             f"Your order #{order_id} is now {status}."
+
     }
 
     print()
     print("SENDING ORDER STATUS UPDATE")
+
     print(
         f"User={user_id}, "
         f"Order={order_id}, "
         f"Status={status}"
     )
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
+
+
+# =========================================================
+# ORDER CANCELLED
+# =========================================================
+
+async def send_order_cancelled(
+    user_id: int,
+    order_id: int
+):
+
+    message = {
+
+        "event": "order_cancelled",
+
+        "order_id": order_id,
+
+        "status": "Cancelled",
+
+        "message":
+            f"Your order #{order_id} has been cancelled."
+
+    }
+
+    print()
+    print("SENDING ORDER CANCELLED UPDATE")
 
     return await manager.send_to_user(
         user_id,
@@ -318,7 +467,9 @@ async def send_order_update(
 async def send_cart_update(
     user_id: int,
     cart_id: int,
-    action: str
+    action: str,
+    product_id: int | None = None,
+    quantity: int | None = None
 ):
 
     message = {
@@ -327,17 +478,25 @@ async def send_cart_update(
 
         "cart_id": cart_id,
 
+        "product_id": product_id,
+
+        "quantity": quantity,
+
         "action": action,
 
         "message":
             f"Your cart was {action}."
+
     }
 
     print()
     print("SENDING CART UPDATE")
+
     print(
         f"User={user_id}, "
         f"Cart={cart_id}, "
+        f"Product={product_id}, "
+        f"Quantity={quantity}, "
         f"Action={action}"
     )
 
@@ -348,7 +507,41 @@ async def send_cart_update(
 
 
 # =========================================================
-# GENERAL NOTIFICATION
+# CART ITEM REMOVED
+# =========================================================
+
+async def send_cart_removed(
+    user_id: int,
+    cart_id: int,
+    product_id: int
+):
+
+    message = {
+
+        "event": "cart_item_removed",
+
+        "cart_id": cart_id,
+
+        "product_id": product_id,
+
+        "action": "removed",
+
+        "message":
+            "Product was removed from your cart."
+
+    }
+
+    print()
+    print("SENDING CART REMOVE UPDATE")
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
+
+
+# =========================================================
+# NOTIFICATION
 # =========================================================
 
 async def send_notification(
@@ -367,10 +560,12 @@ async def send_notification(
         "type": notification_type,
 
         "message": message
+
     }
 
     print()
     print("SENDING NOTIFICATION")
+
     print(
         f"User={user_id}, "
         f"Type={notification_type}, "
@@ -380,4 +575,101 @@ async def send_notification(
     return await manager.send_to_user(
         user_id,
         notification_message
+    )
+
+
+# =========================================================
+# RETURN REQUEST
+# =========================================================
+
+async def send_return_update(
+    user_id: int,
+    order_id: int,
+    status: str
+):
+
+    message = {
+
+        "event": "return_updated",
+
+        "order_id": order_id,
+
+        "status": status,
+
+        "message":
+            f"Your return request for order #{order_id} is {status}."
+
+    }
+
+    print()
+    print("SENDING RETURN UPDATE")
+
+    print(
+        f"User={user_id}, "
+        f"Order={order_id}, "
+        f"Return Status={status}"
+    )
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
+
+
+# =========================================================
+# PAYMENT UPDATE
+# =========================================================
+
+async def send_payment_update(
+    user_id: int,
+    order_id: int,
+    payment_status: str
+):
+
+    message = {
+
+        "event": "payment_updated",
+
+        "order_id": order_id,
+
+        "payment_status": payment_status,
+
+        "message":
+            f"Payment for order #{order_id} is {payment_status}."
+
+    }
+
+    print()
+    print("SENDING PAYMENT UPDATE")
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
+
+
+# =========================================================
+# GENERIC REAL-TIME EVENT
+# =========================================================
+
+async def send_realtime_update(
+    user_id: int,
+    event: str,
+    message: str,
+    data: dict | None = None
+):
+
+    realtime_message = {
+
+        "event": event,
+
+        "message": message,
+
+        "data": data or {}
+
+    }
+
+    return await manager.send_to_user(
+        user_id,
+        realtime_message
     )

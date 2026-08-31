@@ -75,6 +75,13 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
+    # RETURN REQUESTS
+    return_requests = relationship(
+        "ReturnRequest",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
 
 # =========================================================
 # PRODUCT MODEL
@@ -121,7 +128,6 @@ class Product(Base):
         nullable=True
     )
 
-    # Optional popularity field
     popularity = Column(
         Integer,
         nullable=False,
@@ -254,6 +260,11 @@ class Order(Base):
         nullable=False
     )
 
+    delivered_at = Column(
+        DateTime,
+        nullable=True
+    )
+
     # -----------------------------------------------------
     # RELATIONSHIPS
     # -----------------------------------------------------
@@ -269,11 +280,15 @@ class Order(Base):
         cascade="all, delete-orphan"
     )
 
-    # IMPORTANT:
-    # One Order can contain many OrderItems.
-
     items = relationship(
         "OrderItem",
+        back_populates="order",
+        cascade="all, delete-orphan"
+    )
+
+    # RETURN REQUESTS
+    return_requests = relationship(
+        "ReturnRequest",
         back_populates="order",
         cascade="all, delete-orphan"
     )
@@ -281,28 +296,6 @@ class Order(Base):
 
 # =========================================================
 # ORDER ITEM MODEL
-# =========================================================
-#
-# This table stores the actual products purchased
-# inside every order.
-#
-# Example:
-#
-# Order #81
-#
-# Laptop      quantity = 2    price = 65000
-# Mouse       quantity = 1    price = 1500
-# Keyboard    quantity = 1    price = 3000
-#
-# This allows us to calculate:
-#
-# - Top-selling products
-# - Total quantity sold
-# - Product sales
-# - Product revenue
-# - Sales analytics
-# - Detailed reports
-#
 # =========================================================
 
 class OrderItem(Base):
@@ -349,14 +342,6 @@ class OrderItem(Base):
 
     # -----------------------------------------------------
     # PRICE AT TIME OF PURCHASE
-    # -----------------------------------------------------
-    #
-    # Do NOT depend on Product.price here.
-    #
-    # If the product price changes later,
-    # old order records should still contain
-    # the original purchase price.
-    #
     # -----------------------------------------------------
 
     price = Column(
@@ -511,4 +496,93 @@ class Notification(Base):
     user = relationship(
         "User",
         back_populates="notifications"
+    )
+
+
+# =========================================================
+# RETURN REQUEST MODEL
+# =========================================================
+
+class ReturnRequest(Base):
+
+    __tablename__ = "return_requests"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    # -----------------------------------------------------
+    # ORDER REFERENCE
+    # -----------------------------------------------------
+
+    order_id = Column(
+        Integer,
+        ForeignKey("orders.id"),
+        nullable=False,
+        index=True
+    )
+
+    # -----------------------------------------------------
+    # USER REFERENCE
+    # -----------------------------------------------------
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
+    # -----------------------------------------------------
+    # RETURN REASON
+    # -----------------------------------------------------
+
+    reason = Column(
+        String(255),
+        nullable=False
+    )
+
+    # -----------------------------------------------------
+    # ADDITIONAL COMMENT
+    # -----------------------------------------------------
+
+    comment = Column(
+        Text,
+        nullable=True
+    )
+
+    # -----------------------------------------------------
+    # RETURN STATUS
+    #
+    # pending
+    # approved
+    # rejected
+    # -----------------------------------------------------
+
+    status = Column(
+        String(30),
+        default="pending",
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    # -----------------------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------------------
+
+    order = relationship(
+        "Order",
+        back_populates="return_requests"
+    )
+
+    user = relationship(
+        "User",
+        back_populates="return_requests"
     )

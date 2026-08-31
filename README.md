@@ -2,7 +2,7 @@
 
 A full-stack **Smart E-Commerce Platform** developed using **FastAPI, Django, MySQL, SQLAlchemy, JWT, Auth0, React/Next.js, Stripe, WebSockets, Email Notifications, and Postman**.
 
-The platform provides secure authentication, role-based access control, product management, shopping cart management, order processing, Stripe payment integration, notifications, email notifications, real-time updates, Django administration, dashboard analytics, reporting, Swagger/OpenAPI documentation, and Postman API testing.
+The platform provides secure authentication, role-based access control, product management, shopping cart management, order processing, Stripe payment integration, notifications, email notifications, real-time updates, **user-side return/refund requests**, Django administration, dashboard analytics, reporting, Swagger/OpenAPI documentation, and Postman API testing.
 
 ---
 
@@ -12,13 +12,14 @@ The Smart E-Commerce Platform follows a modular architecture separating the appl
 
 * FastAPI backend
 * Django Admin Panel
-* Database
+* MySQL database
 * Authentication
 * Authorization
 * Product management
 * Shopping cart management
 * Order management
 * Payment management
+* **Return & Refund Request Management**
 * Notification system
 * Email notification system
 * Real-time WebSocket updates
@@ -36,7 +37,27 @@ The application supports three main user roles:
 
 ---
 
-# 🚀 2. Main Features
+# 🎯 2. Project Objective
+
+The main objective of the project is to develop a secure, modular, and user-friendly e-commerce platform that supports the complete shopping workflow.
+
+The platform covers:
+
+* User registration and authentication
+* Product browsing and management
+* Shopping cart management
+* Order creation and tracking
+* Payment processing
+* Return and refund request management
+* Notifications
+* Email communication
+* Real-time order updates
+* Administrative management
+* Analytics and reporting
+
+---
+
+# 🚀 3. Main Features
 
 ## 🔐 Authentication
 
@@ -51,6 +72,8 @@ The application supports three main user roles:
 * Google Login
 * Facebook Login
 
+---
+
 ## 🛡️ Authorization
 
 * Role-Based Access Control (RBAC)
@@ -59,6 +82,8 @@ The application supports three main user roles:
 * Customer role
 * Protected APIs
 * Role-based administrative operations
+
+---
 
 ## 📦 Product Management
 
@@ -76,6 +101,8 @@ The application supports three main user roles:
 * Product stock management
 * Product image information
 
+---
+
 ## 🛒 Shopping Cart
 
 * Add product to cart
@@ -91,6 +118,8 @@ The application supports three main user roles:
 * Tax calculation
 * Grand total calculation
 
+---
+
 ## 📋 Order Management
 
 * Create order
@@ -101,63 +130,604 @@ The application supports three main user roles:
 * Payment success
 * Payment failure
 * Order processing
+* Order shipping
+* Order delivery
+* **Return request**
+* **Return request status tracking**
 
-## 💳 Stripe Payment
+---
 
-* Stripe Checkout integration
-* Payment session creation
-* Payment success handling
-* Payment failure handling
+# 🔄 4. User-side Refund & Return Request Flow
+
+The project implements a **User-side Refund & Return Request Flow** to allow customers to request a return for an eligible delivered order.
+
+## Return Request Feature
+
+A **Request Return** option is available on the user's Orders page when the order is eligible for return.
+
+A return request is allowed only when:
+
+* Order status is **Delivered**
+* The order is within the configured return window
+* Example return window: **7 days**
+* The authenticated user owns the order
+
+The user can provide:
+
+* Return reason
+* Optional comment
+
+---
+
+## Return Request Flow
+
+```text
+Customer
+    ↓
+Orders Page
+    ↓
+Select Delivered Order
+    ↓
+Request Return
+    ↓
+Enter Reason
+    ↓
+Optional Comment
+    ↓
+Submit Return Request
+    ↓
+Backend Validation
+    ↓
+Check Order Ownership
+    ↓
+Check Order Status
+    ↓
+Check Return Window
+    ↓
+Create ReturnRequest
+    ↓
+Order Status = Return Requested
+    ↓
+Admin/Staff Reviews Request
+    ↓
+Approve / Reject
+```
+
+---
+
+# 📝 5. Return Request Feature – User Panel
+
+The user can access the return functionality from the **Orders page**.
+
+## User Flow
+
+```text
+Orders
+   ↓
+Delivered Order
+   ↓
+Request Return
+   ↓
+Select Reason
+   ↓
+Enter Optional Comment
+   ↓
+Submit
+```
+
+The system validates the request before creating it.
+
+### Example reasons
+
+* Damaged product
+* Product not working
+* Wrong product
+* Product not as described
+* Missing item
+* Other
+
+---
+
+# 🔌 6. Return Request API
+
+The backend provides an API for creating return requests.
+
+## Create Return Request
+
+```http
+POST /orders/{order_id}/return
+```
+
+### Request
+
+The request contains:
+
+```json
+{
+    "reason": "Damage Product",
+    "comment": "The product was received with visible damage and is not in usable condition"
+}
+```
+
+The `comment` field is optional.
+
+---
+
+## API Processing
+
+When the API receives the request, it validates:
+
+1. The order exists
+2. The authenticated user owns the order
+3. The order status is `Delivered`
+4. The order is within the return window
+5. A valid return reason is provided
+6. A return request can be created
+
+If all validations pass:
+
+```text
+ReturnRequest
+      ↓
+Created
+      ↓
+status = pending
+      ↓
+Order status = Return Requested
+```
+
+---
+
+# 🗄️ 7. ReturnRequest Database Model
+
+A dedicated `ReturnRequest` model is used to store customer return requests.
+
+## ReturnRequest Fields
+
+| Field        | Description                       |
+| ------------ | --------------------------------- |
+| `id`         | Unique return request ID          |
+| `order_id`   | Related order ID                  |
+| `user_id`    | Customer who requested the return |
+| `reason`     | Reason for returning the order    |
+| `comment`    | Optional customer comment         |
+| `status`     | Pending / Approved / Rejected     |
+| `created_at` | Return request creation date      |
+
+---
+
+## Return Request Status
+
+The return request supports three main statuses:
+
+```text
+pending
+approved
+rejected
+```
+
+### Pending
+
+The request has been submitted by the customer and is waiting for administrative review.
+
+### Approved
+
+The return request has been accepted.
+
+### Rejected
+
+The return request has been rejected.
+
+---
+
+# 🔗 8. ReturnRequest Relationships
+
+The `ReturnRequest` model is related to:
+
+```text
+User
+  │
+  └── ReturnRequest
+
+Order
+  │
+  └── ReturnRequest
+```
+
+This allows the system to identify:
+
+* Which user requested the return
+* Which order is being returned
+* The reason for the return
+* The current return request status
+
+---
+
+# 🔄 9. Order Status Update for Returns
+
+When a valid return request is created, the corresponding order status is updated.
+
+Before return request:
+
+```text
+Delivered
+```
+
+After return request:
+
+```text
+Return Requested
+```
+
+Flow:
+
+```text
+Delivered
+    ↓
+User Requests Return
+    ↓
+Return Request Created
+    ↓
+Order Status Updated
+    ↓
+Return Requested
+```
+
+This allows administrators and users to identify orders that are currently under return processing.
+
+---
+
+# 👨‍💼 10. Return Request Approval Workflow
+
+After the customer submits a return request, the request remains:
+
+```text
+Pending
+```
+
+The administrator or authorized staff member can review the request.
+
+## Approval Flow
+
+```text
+Pending
+   ↓
+Admin Review
+   ↓
+ ┌───────────────┐
+ ↓               ↓
+Approve        Reject
+ ↓               ↓
+Approved       Rejected
+```
+
+The return request status is displayed to the user.
+
+Example:
+
+```text
+Return Request #7
+Order ID: #84
+Reason: Damage
+Status: Approved
+```
+
+---
+
+# 💰 11. Refund Workflow
+
+The return request and refund process are logically connected.
+
+The customer first submits a return request.
+
+```text
+Customer
+   ↓
+Return Request
+   ↓
+Admin Review
+   ↓
+Approved
+   ↓
+Return Processing
+   ↓
+Refund Processing
+```
+
+The return request records whether the return has been:
+
+* Pending
+* Approved
+* Rejected
+
+The actual payment refund can then be processed according to the application's payment/refund implementation.
+
+> **Note:** The current return-request implementation handles the customer return request and approval/rejection workflow. A separate automated Stripe refund operation can be added if required.
+
+---
+
+# 📦 12. Order APIs
+
+## Create Order
+
+```http
+POST /orders/create?user_id=1
+```
+
+---
+
+## Get Orders
+
+```http
+GET /orders/?user_id=1
+```
+
+---
+
+## Get Individual Order
+
+```http
+GET /orders/{order_id}
+```
+
+---
+
+## Payment Success
+
+```http
+PUT /orders/{order_id}/pay
+```
+
+Example:
+
+```http
+PUT /orders/1/pay
+```
+
+---
+
+## Update Order Status
+
+```http
+PUT /orders/{order_id}/status?status=shipped
+```
+
+Example:
+
+```http
+PUT /orders/1/status?status=shipped
+```
+
+---
+
+## Request Return
+
+```http
+POST /orders/{order_id}/return
+```
+
+Example:
+
+```http
+POST /orders/84/return
+```
+
+Request body:
+
+```json
+{
+    "reason": "Damage",
+    "comment": "Product received with visible damage"
+}
+```
+
+---
+
+# 💳 13. Payment Management
+
+The Payment module manages payment-related information associated with orders.
+
+Payment functionality includes:
+
+* Payment information
+* Payment success
+* Payment failure
+* Payment status tracking
+* Stripe Checkout
 * Stripe webhook
-* Payment status management
-* Stripe test-mode support
+* Return/refund workflow support
 
-## 🔔 Notification System
+---
 
-* Create notification
-* Get notifications
-* Mark notification as read
-* Notification read/unread status
-* Order confirmation notifications
-* Payment notifications
-* Shipping notifications
-* Delivery notifications
+# 💰 14. Stripe Integration
 
-## 📧 Email Notifications
+The project integrates Stripe Checkout for payment processing.
 
-Email notifications support events such as:
+## Stripe Checkout Flow
+
+```text
+Customer
+   ↓
+Create Order
+   ↓
+Checkout
+   ↓
+Stripe Checkout
+   ↓
+Customer Payment
+   ↓
+Stripe
+   ↓
+Webhook
+   ↓
+Payment Status Update
+   ↓
+Order Updated
+   ↓
+Notification
+```
+
+---
+
+## Stripe Webhook
+
+```http
+POST /stripe/webhook
+```
+
+The webhook validates the Stripe signature before processing the event.
+
+### Important
+
+The Stripe webhook cannot be tested by simply sending an empty POST request.
+
+If the endpoint returns:
+
+```json
+{
+    "detail": "Missing Stripe signature"
+}
+```
+
+the request does not contain the required Stripe signature header.
+
+Stripe test events or a properly configured Stripe webhook should be used for webhook testing.
+
+---
+
+# 🔔 15. Notification System
+
+The notification system provides application notifications for users.
+
+Notifications can be generated for:
 
 * Order confirmation
 * Payment success
 * Payment failure
 * Shipping updates
-* Order delivery updates
+* Delivery updates
+* Return request events
+* Return approval
+* Return rejection
 
-Email can be configured using SMTP or another supported email service.
+---
 
-## ⚡ Real-Time Updates
+## Get Notifications
 
-WebSocket functionality supports real-time application updates such as:
+```http
+GET /notifications/?user_id=1
+```
 
-* Order status updates
-* Cart updates
-* Real-time notification events
+---
 
-Example events:
+## Create Notification
+
+```http
+POST /notifications/?user_id=1&type=order&message=Order%20confirmed
+```
+
+---
+
+## Mark Notification as Read
+
+```http
+POST /notifications/read?notification_id=1
+```
+
+---
+
+# 📧 16. Email Notifications
+
+The application supports email notifications for important events.
+
+Examples:
+
+* Order confirmation
+* Payment successful
+* Payment failed
+* Order shipped
+* Order delivered
+* **Return request submitted**
+* **Return request approved**
+* **Return request rejected**
+
+Email credentials should be stored in environment variables.
+
+---
+
+# ⚡ 17. Real-Time WebSocket Updates
+
+WebSockets are used to provide real-time application updates.
+
+Supported events can include:
 
 ```text
 order_status_updated
 cart_updated
+return_request_updated
+notification_created
 ```
 
-## 📊 Dashboard & Analytics
+Example return flow:
 
-The project provides analytics and dashboard information including:
+```text
+Return Request Status Changed
+          ↓
+Backend Event
+          ↓
+WebSocket
+          ↓
+Connected Client
+          ↓
+Real-Time UI Update
+```
+
+---
+
+# 📊 18. Dashboard
+
+Dashboard endpoint:
+
+```http
+GET /dashboard/
+```
+
+Provides high-level application statistics.
+
+Examples:
 
 * Total users
 * Total products
 * Total cart items
 * Total orders
+* Total sales
+* Application information
+
+Return-related dashboard information can also be extended to include:
+
+* Total return requests
+* Pending returns
+* Approved returns
+* Rejected returns
+
+---
+
+# 📈 19. Analytics
+
+Analytics endpoint:
+
+```http
+GET /analytics/
+```
+
+Admin analytics:
+
+```http
+GET /admin/analytics
+```
+
+Analytics can include:
+
 * Total sales
 * Revenue trends
 * Top-selling products
@@ -165,69 +735,135 @@ The project provides analytics and dashboard information including:
 * User statistics
 * Product statistics
 * Order statistics
-* Cart statistics
-* Admin analytics
+* Return request statistics
 
-## 🧑‍💼 Django Admin Panel
+---
 
-The Django Admin Panel provides management functionality for:
+# 🧑‍💼 20. Django Admin Panel
 
-### User Management
+The Django Admin Panel provides administrative management functionality.
 
-* View users
-* Edit user details
-* Assign roles
-* Activate users
-* Deactivate users
+Start Django:
 
-### Product Management
+```powershell
+python manage.py runserver 8001
+```
 
-* Add products
-* Edit products
-* Delete products
-* Update product information
-* Update stock
-* Manage product images
+Open:
 
-### Order Management
+```text
+http://127.0.0.1:8001/admin/
+```
 
-* View orders
-* Update order status
-* Track payment status
+The administrator can manage:
 
-### Analytics
+* Users
+* Roles
+* Products
+* Stock
+* Orders
+* Payment status
+* Return requests
+* Return request status
+* Dashboard information
+* Reports
+* Analytics
 
-* Dashboard statistics
-* Sales information
-* Revenue information
-* Top-selling products
-* Low-stock alerts
+---
 
-## 📄 Reports
+# 🔄 21. Return Request Admin Management
 
-The system supports administrative reporting for:
+The administrator can review return requests.
 
-* Orders report
-* Sales report
-* User report
+Example:
 
-Supported report formats:
+```text
+Return Request #7
+-------------------------
+Order ID: 84
+User ID: 6
+Reason: Damage
+Comment: No comment
+Status: Approved
+Created At: 8/31/2026
+```
+
+Possible actions:
+
+```text
+Pending
+   ↓
+Approve
+   ↓
+Approved
+```
+
+or:
+
+```text
+Pending
+   ↓
+Reject
+   ↓
+Rejected
+```
+
+---
+
+# 📄 22. Reports
+
+Administrative reports include:
+
+## Orders Report
+
+Contains:
+
+* Order ID
+* User
+* Amount
+* Order status
+* Payment status
+* Date
+
+## Sales Report
+
+Contains:
+
+* Sales totals
+* Revenue
+* Order information
+* Product sales
+
+## User Report
+
+Contains:
+
+* User ID
+* Name
+* Email
+* Role
+* Account information
+
+## Return Report
+
+Can contain:
+
+* Return Request ID
+* Order ID
+* User ID
+* Reason
+* Comment
+* Status
+* Created date
+
+Supported formats:
 
 * CSV
 * PDF
 
-## 🧪 API Testing
-
-* Swagger UI
-* OpenAPI
-* Postman
-* Postman collection
-* Postman environment
-* Manual API testing
-
 ---
 
-# 🛠️ 3. Technology Stack
+# 🛠️ 23. Technology Stack
 
 ## Backend
 
@@ -303,10 +939,11 @@ Supported report formats:
 
 ---
 
-# 📁 4. Project Architecture
+# 📁 24. Project Architecture
 
 ```text
 smart_ecommerce/
+
 │
 ├── fastapi_backend/
 │   │
@@ -374,7 +1011,7 @@ smart_ecommerce/
 
 ---
 
-# 🗄️ 5. Database Design
+# 🗄️ 25. Database Design
 
 The application uses **MySQL** as the primary database.
 
@@ -391,6 +1028,8 @@ Stores registered users and their roles.
 | `role`       | Admin / Staff / Customer |
 | `created_at` | Account creation date    |
 
+---
+
 ## Product
 
 Stores product information.
@@ -405,6 +1044,8 @@ Stores product information.
 | `stock`       | Available stock           |
 | `images`      | Product image information |
 
+---
+
 ## Cart
 
 Stores products added to a user's cart.
@@ -415,6 +1056,8 @@ Stores products added to a user's cart.
 | `user_id`    | User ID          |
 | `product_id` | Product ID       |
 | `quantity`   | Product quantity |
+
+---
 
 ## Order
 
@@ -427,6 +1070,8 @@ Stores customer orders.
 | `total_amount`   | Total order amount |
 | `status`         | Order status       |
 | `payment_status` | Payment status     |
+
+---
 
 ## Notification
 
@@ -443,9 +1088,25 @@ Stores user notifications.
 
 ---
 
-# 🔐 6. Authentication System
+## ReturnRequest
 
-The authentication system uses **JWT-based authentication** with access and refresh tokens.
+Stores customer return requests.
+
+| Field        | Description                   |
+| ------------ | ----------------------------- |
+| `id`         | Return request ID             |
+| `order_id`   | Related order ID              |
+| `user_id`    | Customer ID                   |
+| `reason`     | Return reason                 |
+| `comment`    | Optional comment              |
+| `status`     | Pending / Approved / Rejected |
+| `created_at` | Request creation date         |
+
+---
+
+# 🔐 26. Authentication System
+
+The authentication system uses JWT-based authentication with access and refresh tokens.
 
 ## Registration
 
@@ -453,17 +1114,15 @@ The authentication system uses **JWT-based authentication** with access and refr
 POST /auth/register
 ```
 
-Example request:
+Example:
 
 ```json
 {
-  "name": "Postman User",
-  "email": "example@gmail.com",
-  "password": "your_password"
+    "name": "Postman User",
+    "email": "example@gmail.com",
+    "password": "your_password"
 }
 ```
-
-Creates a new customer account.
 
 ---
 
@@ -473,23 +1132,12 @@ Creates a new customer account.
 POST /auth/login
 ```
 
-The login endpoint uses form-based authentication.
-
 Required fields:
 
 ```text
 username
 password
 ```
-
-Example:
-
-```text
-username = example@gmail.com
-password = your_password
-```
-
-The response provides an access token and refresh token.
 
 ---
 
@@ -499,8 +1147,6 @@ The response provides an access token and refresh token.
 POST /auth/refresh?refresh_token=YOUR_REFRESH_TOKEN
 ```
 
-Generates a new access token using a valid refresh token.
-
 ---
 
 ## Current User
@@ -509,9 +1155,7 @@ Generates a new access token using a valid refresh token.
 GET /auth/me
 ```
 
-Protected endpoint.
-
-Use:
+Protected endpoint:
 
 ```http
 Authorization: Bearer <access_token>
@@ -519,7 +1163,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-# 🌐 7. Social Login
+# 🌐 27. Social Login
 
 Auth0 is integrated for social authentication.
 
@@ -528,7 +1172,7 @@ Supported providers:
 * Google
 * Facebook
 
-## Social Login Flow
+Flow:
 
 ```text
 User
@@ -554,7 +1198,7 @@ POST /auth/social-login
 
 ---
 
-# 🛡️ 8. Role-Based Access Control
+# 🛡️ 28. Role-Based Access Control
 
 The application implements three main roles.
 
@@ -565,6 +1209,8 @@ Administrators can:
 * Manage users
 * Manage products
 * Manage orders
+* Manage return requests
+* Approve/reject return requests
 * View dashboard
 * View analytics
 * Access administrative APIs
@@ -587,13 +1233,13 @@ Customers can:
 * Create orders
 * Complete payment operations
 * View their orders
+* Request returns for eligible orders
+* View return request status
 * Receive notifications
-
-Protected endpoints validate the user's JWT and role before allowing access.
 
 ---
 
-# 📦 9. Product APIs
+# 📦 29. Product APIs
 
 ## Get Products
 
@@ -601,7 +1247,7 @@ Protected endpoints validate the user's JWT and role before allowing access.
 GET /products/
 ```
 
-Supports filters such as:
+Supports:
 
 ```text
 category
@@ -625,18 +1271,16 @@ GET /products/?category=Electronics
 POST /products/
 ```
 
-Requires authentication.
-
 Example:
 
 ```json
 {
-  "name": "Test Laptop",
-  "description": "Test laptop for ecommerce",
-  "price": 50000,
-  "category": "Electronics",
-  "stock": 10,
-  "images": "laptop.jpg"
+    "name": "Test Laptop",
+    "description": "Test laptop for ecommerce",
+    "price": 50000,
+    "category": "Electronics",
+    "stock": 10,
+    "images": "laptop.jpg"
 }
 ```
 
@@ -648,12 +1292,6 @@ Example:
 GET /products/{product_id}
 ```
 
-Example:
-
-```http
-GET /products/1
-```
-
 ---
 
 ## Update Product
@@ -661,8 +1299,6 @@ GET /products/1
 ```http
 PUT /products/{product_id}
 ```
-
-Requires authentication.
 
 ---
 
@@ -672,44 +1308,14 @@ Requires authentication.
 DELETE /products/{product_id}
 ```
 
-Requires authentication and appropriate authorization.
-
 ---
 
-## Get Products By Category
-
-```http
-GET /products/category/{category}
-```
-
-Example:
-
-```http
-GET /products/category/Electronics
-```
-
----
-
-# 🛒 10. Cart APIs
+# 🛒 30. Cart APIs
 
 ## Add Product to Cart
 
 ```http
 POST /cart/add
-```
-
-Parameters:
-
-```text
-user_id
-product_id
-quantity
-```
-
-Example:
-
-```http
-POST /cart/add?user_id=1&product_id=2&quantity=1
 ```
 
 ---
@@ -738,410 +1344,225 @@ DELETE /cart/remove/{cart_id}
 
 ---
 
-# 📋 11. Order APIs
+# 🔔 31. Complete Customer Order-to-Return Flow
 
-## Create Order
-
-```http
-POST /orders/create?user_id=1
-```
-
----
-
-## Get Orders
-
-```http
-GET /orders/?user_id=1
-```
-
----
-
-## Get Individual Order
-
-```http
-GET /orders/{order_id}
-```
-
----
-
-## Payment Success
-
-```http
-PUT /orders/{order_id}/pay
-```
-
-Example:
-
-```http
-PUT /orders/1/pay
-```
-
----
-
-## Update Order Status
-
-```http
-PUT /orders/{order_id}/status?status=shipped
-```
-
-Example:
-
-```http
-PUT /orders/1/status?status=shipped
-```
-
-Possible statuses depend on the application's configured order-status values.
-
----
-
-# 💳 12. Payment APIs
-
-## Get Payment Information
-
-```http
-GET /payment/{order_id}
-```
-
-Example:
-
-```http
-GET /payment/1
-```
-
----
-
-## Payment Failed
-
-```http
-PUT /payment/{order_id}/failed
-```
-
-Example:
-
-```http
-PUT /payment/1/failed
-```
-
----
-
-## Payment Success
-
-```http
-PUT /orders/{order_id}/pay
-```
-
-Example:
-
-```http
-PUT /orders/1/pay
-```
-
-Payment operations update the corresponding order/payment status.
-
----
-
-# 💰 13. Stripe Integration
-
-The project integrates Stripe Checkout for payment processing.
-
-## Stripe Checkout Flow
+The complete customer workflow is:
 
 ```text
-Customer
+Register
    ↓
-Create Order
+Login
+   ↓
+Browse Products
+   ↓
+Add Product to Cart
    ↓
 Checkout
    ↓
-Stripe Checkout
+Create Order
    ↓
-Customer Payment
+Stripe Payment
    ↓
-Stripe
+Payment Success
    ↓
-Webhook
+Order Processing
    ↓
-Payment Status Update
+Shipped
    ↓
-Order Updated
+Delivered
    ↓
-Notification
+Request Return
+   ↓
+Return Request Created
+   ↓
+Order = Return Requested
+   ↓
+Admin Review
+   ↓
+Approve / Reject
+   ↓
+Refund Processing
+   ↓
+Customer Notification
 ```
 
-## Stripe Webhook
+---
+
+# 🔄 32. Return Eligibility Logic
+
+The return request is allowed only when the required conditions are satisfied.
+
+```text
+Is order available?
+       ↓
+      Yes
+       ↓
+Does user own order?
+       ↓
+      Yes
+       ↓
+Is order Delivered?
+       ↓
+      Yes
+       ↓
+Is order within return window?
+       ↓
+      Yes
+       ↓
+Create Return Request
+```
+
+If any condition fails, the API returns an appropriate error response.
+
+Examples:
+
+```text
+Order not found
+Unauthorized order access
+Order is not delivered
+Return window expired
+Invalid request
+```
+
+---
+
+# 🧪 33. API Testing
+
+The application APIs are tested using:
+
+* Swagger UI
+* Postman
+
+Testing covers:
+
+* Registration
+* Login
+* JWT authentication
+* JWT refresh
+* Current user
+* Product APIs
+* Product filtering
+* Cart APIs
+* Order APIs
+* Payment APIs
+* Stripe Checkout
+* Notifications
+* Dashboard
+* Analytics
+* Admin APIs
+* **Return Request API**
+* **Return eligibility validation**
+* **Return request status**
+* Authorization
+* Error responses
+* Validation responses
+
+---
+
+# 📮 34. Postman Testing – Return Request
+
+## Request
 
 ```http
-POST /stripe/webhook
+POST /orders/{order_id}/return
 ```
 
-The webhook validates the Stripe signature before processing the event.
+Example:
 
-### Important
+```http
+POST /orders/84/return
+```
 
-The Stripe webhook cannot be tested by simply sending an empty POST request.
+Authorization:
 
-If the endpoint returns:
+```text
+Bearer Token
+```
+
+Body:
 
 ```json
 {
-  "detail": "Missing Stripe signature"
+    "reason": "Damage",
+    "comment": "Product received with visible damage"
 }
 ```
 
-the request does not contain the required Stripe signature header.
-
-Stripe test events or a properly configured Stripe webhook should be used for webhook testing.
-
----
-
-# 🔔 14. Notification System
-
-The notification system provides application notifications for users.
-
-## Get Notifications
-
-```http
-GET /notifications/?user_id=1
-```
-
----
-
-## Create Notification
-
-```http
-POST /notifications/?user_id=1&type=order&message=Order%20confirmed
-```
-
-Example parameters:
+Expected successful result:
 
 ```text
-user_id = 1
-type = order
-message = Order confirmed
+Return Request Created
 ```
 
----
-
-## Mark Notification as Read
-
-```http
-POST /notifications/read?notification_id=1
-```
-
----
-
-# 📧 15. Email Notifications
-
-The application supports email notifications for important order events.
-
-Examples:
-
-* Order confirmation
-* Payment successful
-* Payment failed
-* Order shipped
-* Order delivered
-
-Email services can be configured using:
-
-* SMTP
-* SendGrid
-* AWS SES
-
-Email credentials should be stored in environment variables and must not be committed to GitHub.
-
----
-
-# ⚡ 16. Real-Time WebSocket Updates
-
-WebSockets are used to provide real-time updates.
-
-Supported events include:
+The request is initially:
 
 ```text
-order_status_updated
-cart_updated
+status = pending
 ```
 
-Example flow:
+and the order becomes:
 
 ```text
-Order Status Changed
-        ↓
-Backend Event
-        ↓
-WebSocket
-        ↓
-Connected Client
-        ↓
-Real-Time UI Update
+Return Requested
 ```
 
 ---
 
-# 📊 17. Dashboard
+# 🧪 35. Swagger API Testing
 
-Dashboard endpoint:
-
-```http
-GET /dashboard/
-```
-
-Provides high-level application statistics.
-
-Examples:
-
-* Total users
-* Total products
-* Total cart items
-* Total orders
-* Sales statistics
-* Application information
-
----
-
-# 📈 18. Analytics
-
-Analytics endpoint:
-
-```http
-GET /analytics/
-```
-
-Admin analytics:
-
-```http
-GET /admin/analytics
-```
-
-Analytics can include:
-
-* Total sales
-* Revenue trends
-* Top-selling products
-* Low-stock products
-* User statistics
-* Product statistics
-* Order statistics
-
----
-
-# 👥 19. Admin APIs
-
-## Get Users
-
-```http
-GET /admin/users
-```
-
-Requires authentication.
-
----
-
-## Get Admin Analytics
-
-```http
-GET /admin/analytics
-```
-
-Requires authentication.
-
-Protected admin APIs require:
-
-```http
-Authorization: Bearer <access_token>
-```
-
----
-
-# 🧑‍💼 20. Django Admin Panel
-
-The Django Admin Panel provides administrative management functionality.
-
-Start Django:
-
-```powershell
-python manage.py runserver 8001
-```
-
-Open:
+After starting FastAPI:
 
 ```text
-http://127.0.0.1:8001/admin/
+http://127.0.0.1:8000/docs
 ```
 
-The administrator can manage:
+Recommended testing sequence:
 
-* Users
-* Roles
-* Products
-* Stock
-* Orders
-* Payment status
-* Dashboard information
-* Reports
-* Analytics
-
----
-
-# 📄 21. Reports
-
-Administrative reports include:
-
-## Orders Report
-
-Contains order information such as:
-
-* Order ID
-* User
-* Amount
-* Order status
-* Payment status
-* Date
-
-## Sales Report
-
-Contains sales-related information such as:
-
-* Sales totals
-* Revenue
-* Order information
-* Product sales
-
-## User Report
-
-Contains user information such as:
-
-* User ID
-* Name
-* Email
-* Role
-* Account information
-
-Supported formats:
-
-* CSV
-* PDF
+```text
+Register
+   ↓
+Login
+   ↓
+Get Access Token
+   ↓
+Authorize
+   ↓
+Products
+   ↓
+Cart
+   ↓
+Orders
+   ↓
+Payment
+   ↓
+Delivered Order
+   ↓
+Request Return
+   ↓
+Notifications
+   ↓
+Analytics
+   ↓
+Admin
+```
 
 ---
 
-# 🗄️ 22. MySQL Setup
+# 🗄️ 36. MySQL Setup
 
-Make sure MySQL Server is installed and running.
-
-Create the database:
+Create database:
 
 ```sql
 CREATE DATABASE smart_ecommerce;
 ```
 
-Check the database:
+Check:
 
 ```sql
 SHOW DATABASES;
 ```
 
-Select the database:
+Select:
 
 ```sql
 USE smart_ecommerce;
@@ -1155,101 +1576,7 @@ SHOW TABLES;
 
 ---
 
-# 🔄 23. Alembic Database Migrations
-
-The FastAPI backend uses Alembic for database migrations.
-
-Navigate to:
-
-```powershell
-cd "C:\Fullstack developer\smart_ecommerce\fastapi_backend"
-```
-
-Activate the virtual environment:
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-Check Alembic:
-
-```powershell
-alembic --version
-```
-
-If the command is not recognized, use:
-
-```powershell
-python -m alembic --version
-```
-
-## Create Migration
-
-After changing SQLAlchemy models:
-
-```powershell
-python -m alembic revision --autogenerate -m "update database schema"
-```
-
-## Apply Migration
-
-```powershell
-python -m alembic upgrade head
-```
-
-## Check Current Migration
-
-```powershell
-python -m alembic current
-```
-
-## Check Migration History
-
-```powershell
-python -m alembic history
-```
-
----
-
-# 🐍 24. Django Migrations
-
-The Django Admin application uses Django's migration system.
-
-Navigate to:
-
-```powershell
-cd "C:\Fullstack developer\smart_ecommerce\django_admin"
-```
-
-Check migrations:
-
-```powershell
-python manage.py showmigrations
-```
-
-Apply migrations:
-
-```powershell
-python manage.py migrate
-```
-
-Create migrations after changing Django models:
-
-```powershell
-python manage.py makemigrations
-```
-
-Then apply:
-
-```powershell
-python manage.py migrate
-```
-
----
-
-# 🚀 25. Running the FastAPI Backend
-
-## Step 1 — Open PowerShell
+# 🔄 37. Alembic Database Migrations
 
 Navigate to the backend:
 
@@ -1257,71 +1584,105 @@ Navigate to the backend:
 cd "C:\Fullstack developer\smart_ecommerce\fastapi_backend"
 ```
 
-## Step 2 — Activate Virtual Environment
+Activate environment:
 
 ```powershell
 .\venv\Scripts\Activate.ps1
 ```
 
-You should see:
+Create migration:
 
-```text
-(venv)
+```powershell
+python -m alembic revision --autogenerate -m "update database schema"
 ```
 
-## Step 3 — Install Dependencies
+Apply migration:
+
+```powershell
+python -m alembic upgrade head
+```
+
+Check current migration:
+
+```powershell
+python -m alembic current
+```
+
+Check history:
+
+```powershell
+python -m alembic history
+```
+
+---
+
+# 🐍 38. Django Migrations
+
+Check migrations:
+
+```powershell
+python manage.py showmigrations
+```
+
+Apply:
+
+```powershell
+python manage.py migrate
+```
+
+Create:
+
+```powershell
+python manage.py makemigrations
+```
+
+Apply again:
+
+```powershell
+python manage.py migrate
+```
+
+---
+
+# 🚀 39. Running FastAPI Backend
+
+Navigate:
+
+```powershell
+cd "C:\Fullstack developer\smart_ecommerce\fastapi_backend"
+```
+
+Activate virtual environment:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+Install requirements:
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-## Step 4 — Configure Environment Variables
-
-Create a local `.env` file.
-
-Example:
-
-```env
-DB_USER=root
-DB_PASSWORD=your_database_password
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=smart_ecommerce
-
-SECRET_KEY=your_secret_key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
-
-Add Auth0 and Stripe variables if they are used by the project.
-
-### Important
-
-Never commit real credentials to GitHub.
-
----
-
-# ▶️ 26. Start FastAPI
-
-Run:
+Start FastAPI:
 
 ```powershell
 uvicorn app.main:app --reload
 ```
 
-The backend will normally run at:
+Backend:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Swagger UI:
+Swagger:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-OpenAPI JSON:
+OpenAPI:
 
 ```text
 http://127.0.0.1:8000/openapi.json
@@ -1329,29 +1690,27 @@ http://127.0.0.1:8000/openapi.json
 
 ---
 
-# 🧑‍💼 27. Running Django Admin
+# 🧑‍💼 40. Running Django Admin
 
-Open a second PowerShell window.
-
-Navigate to:
+Open another PowerShell:
 
 ```powershell
 cd "C:\Fullstack developer\smart_ecommerce\django_admin"
 ```
 
-Apply migrations:
+Run migrations:
 
 ```powershell
 python manage.py migrate
 ```
 
-Create a superuser if required:
+Create superuser:
 
 ```powershell
 python manage.py createsuperuser
 ```
 
-Start Django:
+Start:
 
 ```powershell
 python manage.py runserver 8001
@@ -1363,7 +1722,7 @@ Django:
 http://127.0.0.1:8001
 ```
 
-Django Admin:
+Admin:
 
 ```text
 http://127.0.0.1:8001/admin/
@@ -1371,425 +1730,9 @@ http://127.0.0.1:8001/admin/
 
 ---
 
-# 🧪 28. API Testing With Swagger
+# 📸 41. Screenshots / Demo
 
-After starting FastAPI, open:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-Swagger provides interactive testing for the API.
-
-Recommended testing sequence:
-
-```text
-Register
-   ↓
-Login
-   ↓
-Get Access Token
-   ↓
-Authorize
-   ↓
-Test Protected APIs
-   ↓
-Products
-   ↓
-Cart
-   ↓
-Orders
-   ↓
-Payment
-   ↓
-Notifications
-   ↓
-Analytics
-   ↓
-Admin
-```
-
----
-
-# 📮 29. API Testing With Postman
-
-The project APIs were tested using Postman.
-
-Main API groups:
-
-```text
-Authentication
-Products
-Cart
-Orders
-Payment
-Notifications
-Dashboard
-Analytics
-Admin
-Stripe
-```
-
-Base URL:
-
-```text
-http://127.0.0.1:8000
-```
-
-## Authentication Testing
-
-### 1. Register
-
-```http
-POST /auth/register
-```
-
-### 2. Login
-
-```http
-POST /auth/login
-```
-
-### 3. Copy Access Token
-
-Copy the `access_token` from the login response.
-
-### 4. Test Protected APIs
-
-In Postman:
-
-```text
-Authorization
-    ↓
-Type: Bearer Token
-    ↓
-Token: <access_token>
-```
-
-Then send the request.
-
----
-
-# 📋 30. Postman Collection
-
-The project includes a Postman API collection containing requests for the major backend APIs.
-
-Recommended collection structure:
-
-```text
-Smart E-Commerce Platform
-│
-├── Authentication
-│   ├── Register
-│   ├── Login
-│   ├── Refresh Token
-│   ├── Current User
-│   └── Social Login
-│
-├── Products
-│   ├── Get Products
-│   ├── Create Product
-│   ├── Get Product
-│   ├── Update Product
-│   ├── Delete Product
-│   └── Get By Category
-│
-├── Cart
-│   ├── Add To Cart
-│   ├── View Cart
-│   ├── Update Cart
-│   └── Remove Cart
-│
-├── Orders
-│   ├── Create Order
-│   ├── Get Orders
-│   ├── Get Order
-│   ├── Payment Success
-│   └── Update Status
-│
-├── Payment
-│   ├── Get Payment
-│   └── Payment Failed
-│
-├── Notifications
-│   ├── Get Notifications
-│   ├── Create Notification
-│   └── Mark Read
-│
-├── Dashboard
-│   └── Dashboard
-│
-├── Analytics
-│   └── Analytics
-│
-├── Admin
-│   ├── Users
-│   └── Analytics
-│
-└── Stripe
-    └── Webhook
-```
-
----
-
-# 🔑 31. Protected API Authorization
-
-Protected APIs require a JWT access token.
-
-In Postman:
-
-```text
-Authorization
-→ Bearer Token
-→ Enter access_token
-```
-
-Example:
-
-```http
-Authorization: Bearer eyJ...
-```
-
-If the token is missing, the API may return:
-
-```json
-{
-  "detail": "Not authenticated"
-}
-```
-
----
-
-# 🧪 32. API Testing Status
-
-The API endpoints have been manually tested using Postman and Swagger.
-
-Testing covers:
-
-* User registration
-* User login
-* JWT authentication
-* JWT refresh
-* Current user
-* Product APIs
-* Product filtering
-* Cart APIs
-* Order APIs
-* Payment APIs
-* Stripe checkout
-* Notifications
-* Notification read
-* Dashboard
-* Analytics
-* Admin APIs
-* Authorization
-* Error responses
-* Validation responses
-
-Expected successful HTTP responses include:
-
-```text
-200 OK
-201 Created
-```
-
-Expected error responses may include:
-
-```text
-400 Bad Request
-401 Unauthorized
-403 Forbidden
-404 Not Found
-422 Validation Error
-```
-
----
-
-# 🔐 33. Security
-
-The application implements:
-
-* Password hashing
-* JWT authentication
-* Access token expiration
-* Refresh token support
-* Protected routes
-* OAuth2 authentication
-* Role-based authorization
-* Auth0 authentication
-* Environment-based configuration
-* Stripe webhook signature validation
-
-Sensitive values must be stored in environment variables.
-
-Never upload:
-
-```text
-.env
-passwords
-database credentials
-JWT secret keys
-Auth0 secrets
-Stripe secret keys
-API keys
-```
-
-to GitHub.
-
----
-
-# 🔒 34. `.gitignore`
-
-The project should ignore sensitive and generated files such as:
-
-```text
-.env
-venv/
-__pycache__/
-*.pyc
-node_modules/
-*.log
-```
-
-A `.env.example` file can be committed with placeholder values.
-
-Example:
-
-```env
-DB_USER=your_user
-DB_PASSWORD=your_password
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=smart_ecommerce
-
-SECRET_KEY=your_secret_key
-```
-
----
-
-# 🔄 35. Complete Application Flow
-
-```text
-                         USER
-                           │
-                           ▼
-                    Authentication
-                           │
-                 ┌─────────┴─────────┐
-                 │                   │
-              Customer              Admin
-                 │                   │
-                 ▼                   ▼
-             Products           Django Admin
-                 │                   │
-                 ▼                   ▼
-               Cart             Users / Products
-                 │              Orders / Reports
-                 ▼                   │
-              Checkout              │
-                 │                   │
-                 ▼                   ▼
-              Stripe             Analytics
-                 │                   │
-                 ▼                   │
-             Payment                │
-                 │                   │
-                 ▼                   │
-             Order Update ◄─────────┘
-                 │
-          ┌──────┴──────┐
-          ▼             ▼
-    Notification      Email
-          │
-          ▼
-       WebSocket
-          │
-          ▼
-     Real-Time User
-```
-
----
-
-# 📈 36. Analytics Flow
-
-```text
-Database
-   ↓
-Orders
-   ↓
-Sales Data
-   ↓
-Analytics API
-   ↓
-Dashboard
-   ↓
-Charts
-```
-
-Analytics include:
-
-```text
-Total Sales
-Revenue Trends
-Top-Selling Products
-Low-Stock Products
-```
-
----
-
-# 💳 37. Payment Flow
-
-```text
-Customer
-   ↓
-Cart
-   ↓
-Create Order
-   ↓
-Checkout
-   ↓
-Stripe
-   ↓
-Payment
-   ↓
-Stripe Webhook
-   ↓
-Verify Signature
-   ↓
-Update Payment Status
-   ↓
-Update Order Status
-   ↓
-Create Notification
-   ↓
-Send Email
-```
-
----
-
-# 🔔 38. Notification Flow
-
-```text
-Order Event
-     ↓
-Backend
-     ↓
-Create Notification
-     ↓
-Database
-     ↓
-Email Notification
-     ↓
-WebSocket Event
-     ↓
-User Interface
-```
-
----
-
-# 📸 39. Screenshots / Demo
-
-Project screenshots should be stored in:
+Project screenshots can be stored in:
 
 ```text
 screenshots/
@@ -1799,6 +1742,7 @@ Recommended screenshots:
 
 ```text
 screenshots/
+
 ├── login.png
 ├── register.png
 ├── products.png
@@ -1813,16 +1757,29 @@ screenshots/
 ├── admin-products.png
 ├── admin-orders.png
 ├── reports.png
+├── return-request.png
+├── return-request-form.png
+├── return-request-pending.png
+├── return-request-approved.png
+├── return-request-rejected.png
 ├── swagger.png
 ├── postman.png
 └── stripe-checkout.png
 ```
 
-A demo video can also be included if required by the assignment.
+The return-request screenshots demonstrate:
+
+1. Delivered order
+2. Request Return button
+3. Return request form
+4. Submitted return request
+5. Pending status
+6. Approved status
+7. Rejected status
 
 ---
 
-# 📦 40. Final Deliverables
+# 📦 42. Final Deliverables
 
 The completed project includes:
 
@@ -1854,12 +1811,14 @@ The completed project includes:
 * WebSocket real-time updates
 * Dashboard
 * Analytics
-* Sales information
-* Revenue trends
-* Top-selling products
-* Low-stock alerts
-* CSV reports
-* PDF reports
+* Reporting
+* **User-side return request**
+* **Return eligibility validation**
+* **ReturnRequest database model**
+* **Return request API**
+* **Return request status management**
+* **Order status update to Return Requested**
+* **Admin approval/rejection workflow**
 * Swagger/OpenAPI documentation
 * Postman API testing
 * Postman collection
@@ -1868,7 +1827,306 @@ The completed project includes:
 
 ---
 
-# 🐳 41. Optional Docker Deployment
+# 🔐 43. Security
+
+The application implements:
+
+* Password hashing
+* JWT authentication
+* Access token expiration
+* Refresh token support
+* Protected routes
+* OAuth2 authentication
+* Role-based authorization
+* Auth0 authentication
+* Environment-based configuration
+* Stripe webhook signature validation
+* User ownership validation for orders
+* Return eligibility validation
+
+Sensitive values must be stored in environment variables.
+
+Never upload:
+
+```text
+.env
+passwords
+database credentials
+JWT secret keys
+Auth0 secrets
+Stripe secret keys
+API keys
+```
+
+to GitHub.
+
+---
+
+# 🔒 44. .gitignore
+
+The project should ignore:
+
+```text
+.env
+venv/
+__pycache__/
+*.pyc
+node_modules/
+*.log
+```
+
+An `.env.example` file can be committed with placeholder values.
+
+---
+
+# 🔄 45. Complete Application Flow
+
+```text
+                         USER
+                           │
+                           ▼
+                    Authentication
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+          Customer                    Admin
+              │                         │
+              ▼                         ▼
+          Products                Django Admin
+              │                         │
+              ▼                         ▼
+            Cart                Users / Products
+              │                  Orders / Returns
+              ▼                         │
+          Checkout                      │
+              │                         │
+              ▼                         ▼
+            Stripe                  Analytics
+              │                         │
+              ▼                         │
+          Payment                      │
+              │                         │
+              ▼                         │
+         Order Update ◄────────────────┘
+              │
+              ▼
+           Delivered
+              │
+              ▼
+        Request Return
+              │
+              ▼
+       Return Requested
+              │
+              ▼
+        Admin Review
+          /       \
+         /         \
+    Approved      Rejected
+       │              │
+       ▼              ▼
+ Refund Process     Return Closed
+       │
+       ▼
+ Notification
+       │
+       ▼
+    Email
+       │
+       ▼
+  WebSocket
+       │
+       ▼
+ Real-Time User
+```
+
+---
+
+# 📈 46. Analytics Flow
+
+```text
+Database
+   ↓
+Orders
+   ↓
+Sales Data
+   ↓
+Return Data
+   ↓
+Analytics API
+   ↓
+Dashboard
+   ↓
+Charts
+```
+
+Analytics include:
+
+```text
+Total Sales
+Revenue Trends
+Top-Selling Products
+Low-Stock Products
+Return Requests
+Approved Returns
+Rejected Returns
+```
+
+---
+
+# 💳 47. Payment Flow
+
+```text
+Customer
+   ↓
+Cart
+   ↓
+Create Order
+   ↓
+Checkout
+   ↓
+Stripe
+   ↓
+Payment
+   ↓
+Stripe Webhook
+   ↓
+Verify Signature
+   ↓
+Update Payment Status
+   ↓
+Update Order Status
+   ↓
+Create Notification
+   ↓
+Send Email
+```
+
+---
+
+# 🔄 48. Return & Refund Flow
+
+```text
+Delivered Order
+       ↓
+Customer Requests Return
+       ↓
+Validate Order
+       ↓
+Validate User
+       ↓
+Validate Return Window
+       ↓
+Create ReturnRequest
+       ↓
+Status = Pending
+       ↓
+Order = Return Requested
+       ↓
+Admin Review
+       ↓
+ ┌───────────────┐
+ │               │
+ ▼               ▼
+Approved       Rejected
+ │               │
+ ▼               ▼
+Refund          Request Closed
+Processing
+ │
+ ▼
+Notification
+ │
+ ▼
+Email
+ │
+ ▼
+Customer
+```
+
+---
+
+# 🔔 49. Notification Flow
+
+```text
+Order Event
+     ↓
+Backend
+     ↓
+Create Notification
+     ↓
+Database
+     ↓
+Email Notification
+     ↓
+WebSocket Event
+     ↓
+User Interface
+```
+
+Return events can also generate notifications:
+
+```text
+Return Requested
+Return Approved
+Return Rejected
+```
+
+---
+
+# 🧪 50. API Testing Status
+
+The API endpoints have been manually tested using Postman and Swagger.
+
+Testing covers:
+
+* User registration
+* User login
+* JWT authentication
+* JWT refresh
+* Current user
+* Product APIs
+* Product filtering
+* Cart APIs
+* Order APIs
+* Payment APIs
+* Stripe checkout
+* Notifications
+* Notification read
+* Dashboard
+* Analytics
+* Admin APIs
+* Authorization
+* Error responses
+* Validation responses
+* **Return Request API**
+* **Return eligibility**
+* **Return request creation**
+* **Pending return status**
+* **Approved return status**
+* **Rejected return status**
+* **Order status update**
+
+Expected successful responses include:
+
+```text
+200 OK
+201 Created
+```
+
+Expected error responses may include:
+
+```text
+400 Bad Request
+401 Unauthorized
+403 Forbidden
+404 Not Found
+422 Validation Error
+```
+
+---
+
+# 🐳 51. Optional Docker Deployment
 
 Docker deployment can be added as a future enhancement.
 
@@ -1882,7 +2140,7 @@ Frontend
 Nginx
 ```
 
-Example architecture:
+Example:
 
 ```text
 Docker
@@ -1895,10 +2153,11 @@ Docker
 
 ---
 
-# 🔮 42. Future Enhancements
+# 🔮 52. Future Enhancements
 
 Possible future improvements include:
 
+* Automated Stripe refunds
 * Docker deployment
 * Cloud deployment
 * CI/CD pipeline
@@ -1912,10 +2171,13 @@ Possible future improvements include:
 * Redis caching
 * Background task processing
 * Monitoring and logging
+* Return pickup tracking
+* Return shipment tracking
+* Refund transaction tracking
 
 ---
 
-# 🧑‍💻 43. Installation Summary
+# 🧑‍💻 53. Installation Summary
 
 For a new machine:
 
@@ -1938,11 +2200,13 @@ For a new machine:
 16. Open Swagger
 17. Import/test Postman collection
 18. Configure Stripe test credentials if required
+19. Test order workflow
+20. Test return request workflow
 ```
 
 ---
 
-# 📥 44. GitHub Setup
+# 📥 54. GitHub Setup
 
 Clone the project:
 
@@ -1950,13 +2214,13 @@ Clone the project:
 git clone https://github.com/RAMKUMAR63815/smart-ecommerce-platform.git
 ```
 
-Navigate into the project:
+Navigate:
 
 ```powershell
 cd smart-ecommerce-platform
 ```
 
-Check Git status:
+Check status:
 
 ```powershell
 git status
@@ -1964,7 +2228,7 @@ git status
 
 ---
 
-# 📤 45. GitHub Update
+# 📤 55. GitHub Update
 
 After making changes:
 
@@ -1975,7 +2239,7 @@ git add .
 Commit:
 
 ```powershell
-git commit -m "Update project documentation"
+git commit -m "Add user return and refund request flow"
 ```
 
 Push:
@@ -1986,25 +2250,43 @@ git push
 
 ---
 
-# 🌐 46. GitHub Repository
+# 🌐 56. GitHub Repository
 
 **Smart E-Commerce Platform**
 
+Repository:
+
+```text
 https://github.com/RAMKUMAR63815/smart-ecommerce-platform
+```
 
 ---
 
-# 👨‍💻 47. Author
+# 👨‍💻 57. Author
 
 **Ram Kumar**
 
 Smart E-Commerce Platform
 
-Python | FastAPI | Django | SQLAlchemy | MySQL | JWT | Auth0 | Stripe | React | WebSockets | Postman | GitHub
+```text
+Python
+FastAPI
+Django
+SQLAlchemy
+MySQL
+JWT
+Auth0
+Stripe
+React
+Next.js
+WebSockets
+Postman
+GitHub
+```
 
 ---
 
-# ✅ 48. Project Completion
+# ✅ 58. Project Completion
 
 The Smart E-Commerce Platform has been developed as a full-stack e-commerce project demonstrating:
 
@@ -2025,16 +2307,62 @@ The Smart E-Commerce Platform has been developed as a full-stack e-commerce proj
 * Database migrations
 * API documentation
 * Postman API testing
+* **User-side Return Request**
+* **ReturnRequest database model**
+* **Return Request API**
+* **Return eligibility validation**
+* **7-day return window validation**
+* **Order status update to Return Requested**
+* **Admin return approval/rejection**
+* **Return request status tracking**
 * GitHub version control
 
-The project provides a complete foundation for a production-oriented full-stack e-commerce application.
+The project provides a complete foundation for a production-oriented full-stack e-commerce application with customer return management.
 
 ---
 
-# 🏁 Conclusion
+# 🏁 59. Conclusion
 
 The Smart E-Commerce Platform demonstrates a modular full-stack architecture combining **FastAPI for backend APIs, Django for administration, MySQL for data storage, JWT/Auth0 for authentication, Stripe for payments, WebSockets for real-time communication, email notifications for user communication, and Postman/Swagger for API testing**.
 
-The project covers the required e-commerce functionality together with administration, analytics, reporting, authentication, payments, notifications, real-time updates, database migrations, and API documentation.
+The project covers the complete e-commerce workflow from user authentication and product browsing to cart management, order creation, payment processing, delivery, and **user-side return request management**.
 
-**Project Status: Completed**
+The newly implemented **Refund & Return Request Flow** allows customers to request a return for eligible delivered orders within the configured return window. The system validates the order and user, creates a `ReturnRequest`, updates the order status to **Return Requested**, and provides an administrative workflow for approving or rejecting the request.
+
+The project therefore combines:
+
+```text
+Authentication
+      +
+Authorization
+      +
+Products
+      +
+Cart
+      +
+Orders
+      +
+Payments
+      +
+Returns
+      +
+Refund Workflow
+      +
+Notifications
+      +
+Email
+      +
+WebSockets
+      +
+Django Admin
+      +
+Dashboard
+      +
+Analytics
+      +
+Reports
+      +
+API Testing
+```
+
+**Project Status: Completed** ✅

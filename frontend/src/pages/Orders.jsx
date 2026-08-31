@@ -1,33 +1,80 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import "./Orders.css";
 
 function Orders() {
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // =====================================================
+  // RETURN MODAL STATE
+  // =====================================================
+
+  const [showReturnModal, setShowReturnModal] =
+    useState(false);
+
+  const [selectedOrder, setSelectedOrder] =
+    useState(null);
+
+  const [returnReason, setReturnReason] =
+    useState("");
+
+  const [returnComment, setReturnComment] =
+    useState("");
+
+  const [returnLoading, setReturnLoading] =
+    useState(false);
+
+  const [returnMessage, setReturnMessage] =
+    useState("");
+
+  const [returnError, setReturnError] =
+    useState("");
+
+
   const navigate = useNavigate();
+
+
+  // =====================================================
+  // LOGGED-IN USER
+  // =====================================================
 
   const userId =
     localStorage.getItem("user_id");
+
 
   // =====================================================
   // LOAD ORDERS
   // =====================================================
 
   useEffect(() => {
+
     if (userId) {
+
       loadOrders();
+
     } else {
+
       setError("Please login first.");
       setLoading(false);
+
     }
+
   }, [userId]);
 
+
+  // =====================================================
+  // GET ORDERS
+  // =====================================================
+
   const loadOrders = async () => {
+
     try {
+
       setLoading(true);
       setError("");
 
@@ -47,6 +94,7 @@ function Orders() {
       );
 
     } catch (err) {
+
       console.error(
         "Orders error:",
         err
@@ -60,9 +108,188 @@ function Orders() {
       setOrders([]);
 
     } finally {
+
       setLoading(false);
+
     }
+
   };
+
+
+  // =====================================================
+  // OPEN RETURN MODAL
+  // =====================================================
+
+  const openReturnModal = (order) => {
+
+    console.log(
+      "Opening return modal for order:",
+      order
+    );
+
+    setSelectedOrder(order);
+
+    setReturnReason("");
+    setReturnComment("");
+
+    setReturnMessage("");
+    setReturnError("");
+
+    setShowReturnModal(true);
+
+  };
+
+
+  // =====================================================
+  // CLOSE RETURN MODAL
+  // =====================================================
+
+  const closeReturnModal = () => {
+
+    if (returnLoading) {
+      return;
+    }
+
+    setShowReturnModal(false);
+
+    setSelectedOrder(null);
+
+    setReturnReason("");
+    setReturnComment("");
+
+    setReturnMessage("");
+    setReturnError("");
+
+  };
+
+
+  // =====================================================
+  // SUBMIT RETURN REQUEST
+  // =====================================================
+
+  const submitReturnRequest = async () => {
+
+    // ---------------------------------------------------
+    // CHECK ORDER
+    // ---------------------------------------------------
+
+    if (!selectedOrder) {
+
+      setReturnError(
+        "No order selected."
+      );
+
+      return;
+
+    }
+
+
+    // ---------------------------------------------------
+    // CHECK REASON
+    // ---------------------------------------------------
+
+    if (!returnReason.trim()) {
+
+      setReturnError(
+        "Please enter a return reason."
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      setReturnLoading(true);
+
+      setReturnError("");
+      setReturnMessage("");
+
+
+      console.log(
+        "Submitting return request:",
+        {
+          order_id: selectedOrder.id,
+          reason: returnReason,
+          comment: returnComment
+        }
+      );
+
+
+      // -------------------------------------------------
+      // CALL FASTAPI
+      // -------------------------------------------------
+
+      const response = await api.post(
+        `/orders/${selectedOrder.id}/return`,
+        {
+          reason: returnReason,
+          comment: returnComment
+        }
+      );
+
+
+      console.log(
+        "Return response:",
+        response.data
+      );
+
+
+      // -------------------------------------------------
+      // SUCCESS
+      // -------------------------------------------------
+
+      setReturnMessage(
+        response.data?.message ||
+        "Return request submitted successfully."
+      );
+
+
+      // -------------------------------------------------
+      // CLOSE AFTER SHORT DELAY
+      // -------------------------------------------------
+
+      setTimeout(() => {
+
+        setShowReturnModal(false);
+
+        setSelectedOrder(null);
+
+        setReturnReason("");
+        setReturnComment("");
+
+        setReturnMessage("");
+
+        // Reload orders so status becomes
+        // "Return Requested"
+
+        loadOrders();
+
+      }, 1200);
+
+
+    } catch (err) {
+
+      console.error(
+        "Return request error:",
+        err
+      );
+
+
+      setReturnError(
+        err.response?.data?.detail ||
+        "Failed to submit return request."
+      );
+
+    } finally {
+
+      setReturnLoading(false);
+
+    }
+
+  };
+
 
   // =====================================================
   // LOADING
@@ -71,6 +298,7 @@ function Orders() {
   if (loading) {
 
     return (
+
       <div className="orders-page">
 
         <div className="orders-container">
@@ -92,8 +320,11 @@ function Orders() {
         </div>
 
       </div>
+
     );
+
   }
+
 
   // =====================================================
   // ERROR
@@ -102,6 +333,7 @@ function Orders() {
   if (error) {
 
     return (
+
       <div className="orders-page">
 
         <div className="orders-container">
@@ -136,17 +368,26 @@ function Orders() {
         </div>
 
       </div>
+
     );
+
   }
+
 
   // =====================================================
   // PAGE
   // =====================================================
 
   return (
+
     <div className="orders-page">
 
       <div className="orders-container">
+
+
+        {/* =================================================
+            PAGE HEADER
+            ================================================= */}
 
         <div className="orders-header">
 
@@ -162,6 +403,7 @@ function Orders() {
 
           </div>
 
+
           <button
             className="shop-btn"
             onClick={() =>
@@ -172,6 +414,11 @@ function Orders() {
           </button>
 
         </div>
+
+
+        {/* =================================================
+            EMPTY ORDERS
+            ================================================= */}
 
         {orders.length === 0 ? (
 
@@ -202,26 +449,81 @@ function Orders() {
 
         ) : (
 
+
+          /* =================================================
+             ORDERS LIST
+             ================================================= */
+
           <div className="orders-list">
 
             {orders.map((order) => {
+
+
+              // ------------------------------------------------
+              // PAYMENT STATUS
+              // ------------------------------------------------
 
               const isPaid =
                 String(
                   order.payment_status
                 ).toLowerCase() === "paid";
 
-              const isConfirmed =
+
+              // ------------------------------------------------
+              // ORDER STATUS
+              // ------------------------------------------------
+
+              const orderStatus =
                 String(
-                  order.order_status
-                ).toLowerCase() ===
+                  order.order_status || ""
+                ).trim();
+
+
+              const isConfirmed =
+                orderStatus.toLowerCase() ===
                 "confirmed";
 
+
+              // ------------------------------------------------
+              // RETURN STATUS
+              // ------------------------------------------------
+
+              const isDelivered =
+                orderStatus.toLowerCase() ===
+                "delivered";
+
+
+              const isReturnRequested =
+                orderStatus.toLowerCase() ===
+                "return requested";
+
+
+              const isReturned =
+                orderStatus.toLowerCase() ===
+                "returned";
+
+
+              // ------------------------------------------------
+              // CAN REQUEST RETURN
+              // ------------------------------------------------
+
+              const canRequestReturn =
+                isDelivered &&
+                !isReturnRequested &&
+                !isReturned;
+
+
               return (
+
                 <div
                   className="order-card"
                   key={order.id}
                 >
+
+
+                  {/* =================================================
+                      ORDER HEADER
+                      ================================================= */}
 
                   <div className="order-card-header">
 
@@ -237,9 +539,11 @@ function Orders() {
 
                     </div>
 
+
                     <div className="order-date">
 
                       {order.created_at
+
                         ? new Date(
                             order.created_at
                           ).toLocaleDateString(
@@ -250,13 +554,24 @@ function Orders() {
                               year: "numeric",
                             }
                           )
-                        : "N/A"}
+
+                        : "N/A"
+
+                      }
 
                     </div>
 
                   </div>
 
+
+                  {/* =================================================
+                      ORDER INFORMATION
+                      ================================================= */}
+
                   <div className="order-info">
+
+
+                    {/* USER ID */}
 
                     <div className="info-item">
 
@@ -269,6 +584,9 @@ function Orders() {
                       </strong>
 
                     </div>
+
+
+                    {/* TOTAL */}
 
                     <div className="info-item">
 
@@ -289,6 +607,9 @@ function Orders() {
 
                     </div>
 
+
+                    {/* PAYMENT */}
+
                     <div className="info-item">
 
                       <span>
@@ -302,10 +623,15 @@ function Orders() {
                             : "status pending"
                         }
                       >
+
                         {order.payment_status}
+
                       </strong>
 
                     </div>
+
+
+                    {/* ORDER STATUS */}
 
                     <div className="info-item">
 
@@ -317,48 +643,319 @@ function Orders() {
                         className={
                           isConfirmed
                             ? "status confirmed"
-                            : "status pending"
+                            : isDelivered
+                              ? "status delivered"
+                              : isReturned
+                                ? "status returned"
+                                : isReturnRequested
+                                  ? "status return-requested"
+                                  : "status pending"
                         }
                       >
+
                         {order.order_status}
+
                       </strong>
 
                     </div>
 
                   </div>
 
+
+                  {/* =================================================
+                      ORDER FOOTER
+                      ================================================= */}
+
                   <div className="order-card-footer">
 
+
+                    {/* -------------------------------------------------
+                        PAYMENT MESSAGE
+                        ------------------------------------------------- */}
+
                     <span>
+
                       {isPaid
+
                         ? "Payment completed successfully"
-                        : "Payment pending"}
+
+                        : "Payment pending"
+
+                      }
+
                     </span>
 
-                    <button
-                      className="details-btn"
-                      onClick={() =>
-                        navigate(
-                          `/orders/${order.id}`
-                        )
-                      }
-                    >
-                      View Details →
-                    </button>
+
+                    {/* -------------------------------------------------
+                        ACTION BUTTONS
+                        ------------------------------------------------- */}
+
+                    <div className="order-actions">
+
+
+                      {/* VIEW DETAILS */}
+
+                      <button
+                        className="details-btn"
+                        onClick={() =>
+                          navigate(
+                            `/orders/${order.id}`
+                          )
+                        }
+                      >
+                        View Details →
+                      </button>
+
+
+                      {/* =================================================
+                          REQUEST RETURN
+                          ================================================= */}
+
+                      {canRequestReturn && (
+
+                        <button
+                          className="return-btn"
+                          onClick={() =>
+                            openReturnModal(order)
+                          }
+                        >
+                          Request Return
+                        </button>
+
+                      )}
+
+
+                      {/* =================================================
+                          RETURN REQUESTED
+                          ================================================= */}
+
+                      {isReturnRequested && (
+
+                        <span className="return-status">
+
+                          Return Requested
+
+                        </span>
+
+                      )}
+
+
+                      {/* =================================================
+                          RETURNED
+                          ================================================= */}
+
+                      {isReturned && (
+
+                        <span className="return-status returned">
+
+                          Returned
+
+                        </span>
+
+                      )}
+
+                    </div>
 
                   </div>
 
                 </div>
+
               );
+
             })}
 
           </div>
+
         )}
 
       </div>
 
+
+      {/* =========================================================
+          RETURN MODAL
+          ========================================================= */}
+
+      {showReturnModal && selectedOrder && (
+
+        <div
+          className="return-modal-overlay"
+          onClick={closeReturnModal}
+        >
+
+          <div
+            className="return-modal"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+
+
+            {/* =================================================
+                MODAL HEADER
+                ================================================= */}
+
+            <div className="return-modal-header">
+
+              <div>
+
+                <h2>
+                  Request Return
+                </h2>
+
+                <p>
+                  Order #{selectedOrder.id}
+                </p>
+
+              </div>
+
+
+              <button
+                className="modal-close-btn"
+                onClick={closeReturnModal}
+                disabled={returnLoading}
+              >
+                ×
+              </button>
+
+            </div>
+
+
+            {/* =================================================
+                SUCCESS MESSAGE
+                ================================================= */}
+
+            {returnMessage && (
+
+              <div className="return-success">
+
+                {returnMessage}
+
+              </div>
+
+            )}
+
+
+            {/* =================================================
+                ERROR MESSAGE
+                ================================================= */}
+
+            {returnError && (
+
+              <div className="return-error">
+
+                {returnError}
+
+              </div>
+
+            )}
+
+
+            {/* =================================================
+                RETURN FORM
+                ================================================= */}
+
+            {!returnMessage && (
+
+              <div className="return-form">
+
+
+                {/* -------------------------------------------------
+                    REASON
+                    ------------------------------------------------- */}
+
+                <label>
+                  Return Reason
+                </label>
+
+                <textarea
+                  value={returnReason}
+                  onChange={(event) =>
+                    setReturnReason(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Enter the reason for returning this order..."
+                  rows="4"
+                  disabled={returnLoading}
+                />
+
+
+                {/* -------------------------------------------------
+                    COMMENT
+                    ------------------------------------------------- */}
+
+                <label>
+                  Additional Comment
+                  <span>
+                    {" "}
+                    (Optional)
+                  </span>
+                </label>
+
+                <textarea
+                  value={returnComment}
+                  onChange={(event) =>
+                    setReturnComment(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Add any additional information..."
+                  rows="3"
+                  disabled={returnLoading}
+                />
+
+
+                {/* -------------------------------------------------
+                    ACTIONS
+                    ------------------------------------------------- */}
+
+                <div className="return-modal-actions">
+
+                  <button
+                    type="button"
+                    className="cancel-return-btn"
+                    onClick={closeReturnModal}
+                    disabled={returnLoading}
+                  >
+                    Cancel
+                  </button>
+
+
+                  <button
+                    type="button"
+                    className="submit-return-btn"
+                    onClick={submitReturnRequest}
+                    disabled={returnLoading}
+                  >
+
+                    {returnLoading
+
+                      ? "Submitting..."
+
+                      : "Submit Return Request"
+
+                    }
+
+                  </button>
+
+                </div>
+
+              </div>
+
+            )}
+
+          </div>
+
+        </div>
+
+      )}
+
     </div>
+
   );
+
 }
 
+
 export default Orders;
+

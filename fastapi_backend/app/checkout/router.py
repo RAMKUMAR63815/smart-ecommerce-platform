@@ -195,11 +195,7 @@ def checkout(
 
                         "currency": "inr",
 
-                        "product_data": {
-                            "name": (
-                                f"Order #{order.id}"
-                            )
-                        },
+                        "product_data": {"name": (f"Order #{order.id}") },
 
                         "unit_amount": stripe_amount
                     },

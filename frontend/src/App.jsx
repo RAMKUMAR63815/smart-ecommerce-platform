@@ -37,7 +37,7 @@ function App() {
   // Later replace this with the actual
   // logged-in user ID from localStorage / JWT.
 
-  const userId = 6;
+  const userId = localStorage.getItem("user_id");
 
 
   // =====================================================

@@ -35,7 +35,6 @@ function Orders() {
   const [returnError, setReturnError] =
     useState("");
 
-
   const navigate = useNavigate();
 
 
@@ -43,39 +42,22 @@ function Orders() {
   // LOGGED-IN USER
   // =====================================================
 
-  const userId =
-    localStorage.getItem("user_id");
-
-
-  // =====================================================
-  // LOAD ORDERS
-  // =====================================================
-
-  useEffect(() => {
-
-    if (userId) {
-
-      loadOrders();
-
-    } else {
-
-      setError("Please login first.");
-      setLoading(false);
-
-    }
-
-  }, [userId]);
+  const userId = localStorage.getItem("user_id");
 
 
   // =====================================================
   // GET ORDERS
   // =====================================================
 
-  const loadOrders = async () => {
+  const loadOrders = async (showLoader = false) => {
 
     try {
 
-      setLoading(true);
+      // Only show full-page loader on first load
+      if (showLoader) {
+        setLoading(true);
+      }
+
       setError("");
 
       const response = await api.get(
@@ -109,11 +91,65 @@ function Orders() {
 
     } finally {
 
-      setLoading(false);
+      if (showLoader) {
+        setLoading(false);
+      }
 
     }
 
   };
+
+
+  // =====================================================
+  // LOAD ORDERS + AUTO REFRESH
+  // =====================================================
+
+  useEffect(() => {
+
+    if (!userId) {
+
+      setError(
+        "Please login first."
+      );
+
+      setLoading(false);
+
+      return;
+    }
+
+
+    // ---------------------------------------------------
+    // FIRST LOAD
+    // ---------------------------------------------------
+
+    loadOrders(true);
+
+
+    // ---------------------------------------------------
+    // AUTO REFRESH
+    //
+    // This allows Stripe webhook changes to appear
+    // automatically on the Orders page.
+    // ---------------------------------------------------
+
+    const interval = setInterval(() => {
+
+      loadOrders(false);
+
+    }, 3000);
+
+
+    // ---------------------------------------------------
+    // CLEANUP
+    // ---------------------------------------------------
+
+    return () => {
+
+      clearInterval(interval);
+
+    };
+
+  }, [userId]);
 
 
   // =====================================================
@@ -260,11 +296,12 @@ function Orders() {
         setReturnComment("");
 
         setReturnMessage("");
+        setReturnError("");
 
         // Reload orders so status becomes
         // "Return Requested"
 
-        loadOrders();
+        loadOrders(false);
 
       }, 1200);
 
@@ -358,7 +395,7 @@ function Orders() {
 
             <button
               className="retry-btn"
-              onClick={loadOrders}
+              onClick={() => loadOrders(true)}
             >
               Try Again
             </button>
@@ -449,7 +486,6 @@ function Orders() {
 
         ) : (
 
-
           /* =================================================
              ORDERS LIST
              ================================================= */
@@ -458,14 +494,13 @@ function Orders() {
 
             {orders.map((order) => {
 
-
               // ------------------------------------------------
               // PAYMENT STATUS
               // ------------------------------------------------
 
               const isPaid =
                 String(
-                  order.payment_status
+                  order.payment_status || ""
                 ).toLowerCase() === "paid";
 
 
@@ -508,6 +543,7 @@ function Orders() {
               // ------------------------------------------------
 
               const canRequestReturn =
+                isPaid &&
                 isDelivered &&
                 !isReturnRequested &&
                 !isReturned;

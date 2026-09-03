@@ -2,7 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.models import Order, Payment, User, Notification
+
+from app.models import (
+    Order,
+    Payment,
+    User,
+    Notification
+)
 
 from app.websocket.websocket import (
     send_notification,
@@ -65,7 +71,7 @@ def get_payment_order(
         )
 
     # -----------------------------------------------------
-    # FIND PAYMENT
+    # FIND LATEST PAYMENT
     # -----------------------------------------------------
 
     payment = (
@@ -87,11 +93,14 @@ def get_payment_order(
 
         "order": {
 
-            "id": order.id,
+            "id":
+                order.id,
 
-            "user_id": order.user_id,
+            "user_id":
+                order.user_id,
 
-            "total_amount": order.total_amount,
+            "total_amount":
+                order.total_amount,
 
             "payment_status":
                 order.payment_status,
@@ -103,7 +112,10 @@ def get_payment_order(
                 order.order_status,
 
             "created_at":
-                order.created_at
+                order.created_at,
+
+            "delivered_at":
+                order.delivered_at
         },
 
         "payment": {
@@ -130,6 +142,37 @@ def get_payment_order(
 
             "status":
                 payment.status
+                if payment
+                else None,
+
+            # -------------------------------------------------
+            # REFUND INFORMATION
+            # -------------------------------------------------
+
+            "refund_id":
+                getattr(
+                    payment,
+                    "refund_id",
+                    None
+                )
+                if payment
+                else None,
+
+            "refund_amount":
+                getattr(
+                    payment,
+                    "refund_amount",
+                    None
+                )
+                if payment
+                else None,
+
+            "refunded_at":
+                getattr(
+                    payment,
+                    "refunded_at",
+                    None
+                )
                 if payment
                 else None,
 
@@ -187,7 +230,7 @@ async def payment_failed(
     )
 
     # -----------------------------------------------------
-    # FIND PAYMENT
+    # FIND LATEST PAYMENT
     # -----------------------------------------------------
 
     payment = (
@@ -207,9 +250,7 @@ async def payment_failed(
 
     order.payment_status = "Failed"
 
-    # Keep order status as Pending.
-    # Payment failed does not mean the order is confirmed.
-
+    # Payment failed, so order remains pending.
     order.order_status = "Pending"
 
     if payment:
@@ -282,7 +323,6 @@ async def payment_failed(
             message=notification_message,
 
             notification_id=notification.id
-
         )
 
         print(
@@ -310,7 +350,6 @@ async def payment_failed(
             order_id=order.id,
 
             status=order.order_status
-
         )
 
         print(
@@ -345,7 +384,6 @@ async def payment_failed(
                 ),
 
                 body=notification_message
-
             )
 
             email_sent = True
@@ -391,7 +429,10 @@ async def payment_failed(
                 order.order_status,
 
             "created_at":
-                order.created_at
+                order.created_at,
+
+            "delivered_at":
+                order.delivered_at
         },
 
         "payment": {
@@ -401,10 +442,52 @@ async def payment_failed(
                 if payment
                 else None,
 
+            "amount":
+                payment.amount
+                if payment
+                else None,
+
+            "payment_method":
+                payment.payment_method
+                if payment
+                else None,
+
+            "transaction_id":
+                payment.transaction_id
+                if payment
+                else None,
+
             "status":
                 payment.status
                 if payment
-                else "Failed"
+                else "Failed",
+
+            "refund_id":
+                getattr(
+                    payment,
+                    "refund_id",
+                    None
+                )
+                if payment
+                else None,
+
+            "refund_amount":
+                getattr(
+                    payment,
+                    "refund_amount",
+                    None
+                )
+                if payment
+                else None,
+
+            "refunded_at":
+                getattr(
+                    payment,
+                    "refunded_at",
+                    None
+                )
+                if payment
+                else None
         },
 
         "notification": {

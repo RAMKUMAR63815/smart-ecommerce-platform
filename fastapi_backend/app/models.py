@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy import DECIMAL
 
 from sqlalchemy import (
     Column,
@@ -75,7 +76,6 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
-    # RETURN REQUESTS
     return_requests = relationship(
         "ReturnRequest",
         back_populates="user",
@@ -229,6 +229,7 @@ class Order(Base):
     # Paid
     # Failed
     # Cancelled
+    # Refunded
     # -----------------------------------------------------
 
     payment_status = Column(
@@ -245,6 +246,8 @@ class Order(Base):
     # Processing
     # Shipped
     # Delivered
+    # Returned
+    # Rejected
     # Cancelled
     # -----------------------------------------------------
 
@@ -259,6 +262,10 @@ class Order(Base):
         default=datetime.utcnow,
         nullable=False
     )
+
+    # -----------------------------------------------------
+    # DELIVERY DATE
+    # -----------------------------------------------------
 
     delivered_at = Column(
         DateTime,
@@ -286,7 +293,6 @@ class Order(Base):
         cascade="all, delete-orphan"
     )
 
-    # RETURN REQUESTS
     return_requests = relationship(
         "ReturnRequest",
         back_populates="order",
@@ -378,6 +384,10 @@ class Payment(Base):
         index=True
     )
 
+    # -----------------------------------------------------
+    # ORDER REFERENCE
+    # -----------------------------------------------------
+
     order_id = Column(
         Integer,
         ForeignKey("orders.id"),
@@ -385,10 +395,11 @@ class Payment(Base):
         index=True
     )
 
-    amount = Column(
-        Float,
-        nullable=False
-    )
+    # -----------------------------------------------------
+    # PAYMENT AMOUNT
+    # -----------------------------------------------------
+
+    amount = Column(DECIMAL(12, 2), nullable=False)
 
     # -----------------------------------------------------
     # PAYMENT METHOD
@@ -406,7 +417,10 @@ class Payment(Base):
     )
 
     # -----------------------------------------------------
-    # TRANSACTION ID
+    # PAYMENT TRANSACTION ID
+    #
+    # For Stripe this can contain:
+    # PaymentIntent ID / Charge ID
     # -----------------------------------------------------
 
     transaction_id = Column(
@@ -422,6 +436,7 @@ class Payment(Base):
     # paid
     # failed
     # cancelled
+    # refunded
     # -----------------------------------------------------
 
     status = Column(
@@ -429,6 +444,39 @@ class Payment(Base):
         default="pending",
         nullable=False
     )
+
+    # -----------------------------------------------------
+    # REFUND ID
+    #
+    # Stores Stripe Refund ID
+    # Example:
+    # re_123456789
+    # -----------------------------------------------------
+
+    refund_id = Column(
+        String(255),
+        nullable=True,
+        index=True
+    )
+
+    # -----------------------------------------------------
+    # REFUND AMOUNT
+    # -----------------------------------------------------
+
+    refund_amount = Column(DECIMAL(12, 2), nullable=True)
+
+    # -----------------------------------------------------
+    # REFUND COMPLETED TIME
+    # -----------------------------------------------------
+
+    refunded_at = Column(
+        DateTime,
+        nullable=True
+    )
+
+    # -----------------------------------------------------
+    # PAYMENT CREATED TIME
+    # -----------------------------------------------------
 
     timestamp = Column(
         DateTime,
@@ -466,6 +514,15 @@ class Notification(Base):
         nullable=False,
         index=True
     )
+
+    # -----------------------------------------------------
+    # NOTIFICATION TYPE
+    #
+    # payment
+    # order
+    # return
+    # refund
+    # -----------------------------------------------------
 
     type = Column(
         String(50),
@@ -559,6 +616,7 @@ class ReturnRequest(Base):
     # pending
     # approved
     # rejected
+    # refunded
     # -----------------------------------------------------
 
     status = Column(
@@ -566,6 +624,10 @@ class ReturnRequest(Base):
         default="pending",
         nullable=False
     )
+
+    # -----------------------------------------------------
+    # RETURN REQUEST CREATED TIME
+    # -----------------------------------------------------
 
     created_at = Column(
         DateTime,

@@ -1,7 +1,15 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from typing import Dict, List
-import asyncio
+from fastapi import (
+    APIRouter,
+    WebSocket,
+    WebSocketDisconnect
+)
 
+from typing import Dict, List
+
+
+# =========================================================
+# ROUTER
+# =========================================================
 
 router = APIRouter(
     tags=["WebSocket"]
@@ -25,7 +33,10 @@ class ConnectionManager:
         #     10: [websocket2, websocket3]
         # }
         #
-        self.active_connections: Dict[int, List[WebSocket]] = {}
+        self.active_connections: Dict[
+            int,
+            List[WebSocket]
+        ] = {}
 
 
     # =====================================================
@@ -44,7 +55,9 @@ class ConnectionManager:
 
             self.active_connections[user_id] = []
 
-        self.active_connections[user_id].append(websocket)
+        self.active_connections[user_id].append(
+            websocket
+        )
 
         print()
         print("=" * 70)
@@ -52,11 +65,15 @@ class ConnectionManager:
         print("User ID:", user_id)
         print(
             "User connections:",
-            len(self.active_connections[user_id])
+            len(
+                self.active_connections[user_id]
+            )
         )
         print(
             "Connected users:",
-            list(self.active_connections.keys())
+            list(
+                self.active_connections.keys()
+            )
         )
         print("=" * 70)
         print()
@@ -77,7 +94,9 @@ class ConnectionManager:
 
         if websocket in self.active_connections[user_id]:
 
-            self.active_connections[user_id].remove(websocket)
+            self.active_connections[user_id].remove(
+                websocket
+            )
 
         if not self.active_connections[user_id]:
 
@@ -89,7 +108,9 @@ class ConnectionManager:
         print("User ID:", user_id)
         print(
             "Remaining connected users:",
-            list(self.active_connections.keys())
+            list(
+                self.active_connections.keys()
+            )
         )
         print("=" * 70)
         print()
@@ -114,9 +135,18 @@ class ConnectionManager:
         print("=" * 70)
         print("WEBSOCKET SEND REQUEST")
         print("User ID:", user_id)
-        print("Connections found:", len(connections))
-        print("Event:", message.get("event"))
-        print("Message:", message)
+        print(
+            "Connections found:",
+            len(connections)
+        )
+        print(
+            "Event:",
+            message.get("event")
+        )
+        print(
+            "Message:",
+            message
+        )
         print("=" * 70)
 
         # -------------------------------------------------
@@ -132,26 +162,30 @@ class ConnectionManager:
 
             print(
                 "Currently connected users:",
-                list(self.active_connections.keys())
+                list(
+                    self.active_connections.keys()
+                )
             )
 
             print()
 
             return False
 
-
         # -------------------------------------------------
         # SEND MESSAGE
         # -------------------------------------------------
 
         sent_successfully = False
+
         disconnected = []
 
         for websocket in list(connections):
 
             try:
 
-                await websocket.send_json(message)
+                await websocket.send_json(
+                    message
+                )
 
                 print(
                     f"SUCCESS: WebSocket message sent "
@@ -167,8 +201,9 @@ class ConnectionManager:
                     f"for user {user_id}: {e}"
                 )
 
-                disconnected.append(websocket)
-
+                disconnected.append(
+                    websocket
+                )
 
         # -------------------------------------------------
         # REMOVE DEAD CONNECTIONS
@@ -180,7 +215,6 @@ class ConnectionManager:
                 user_id,
                 websocket
             )
-
 
         print(
             "WebSocket send result:",
@@ -207,7 +241,9 @@ class ConnectionManager:
         print("Message:", message)
         print("=" * 70)
 
-        for user_id in list(self.active_connections.keys()):
+        for user_id in list(
+            self.active_connections.keys()
+        ):
 
             await self.send_to_user(
                 user_id,
@@ -299,12 +335,10 @@ async def websocket_endpoint(
 
         })
 
-
         print(
             f"Connection confirmation sent "
             f"to user {user_id}"
         )
-
 
         # -------------------------------------------------
         # KEEP CONNECTION ALIVE
@@ -369,17 +403,21 @@ async def send_order_created(
 
     message = {
 
-        "event": "order_created",
+        "event":
+            "order_created",
 
-        "order_id": order_id,
+        "order_id":
+            order_id,
 
         "message":
-            f"Your order #{order_id} has been created successfully."
+            f"Your order #{order_id} "
+            f"has been created successfully."
 
     }
 
     print()
     print("SENDING ORDER CREATED UPDATE")
+
     print(
         f"User={user_id}, "
         f"Order={order_id}"
@@ -403,14 +441,18 @@ async def send_order_update(
 
     message = {
 
-        "event": "order_status_updated",
+        "event":
+            "order_status_updated",
 
-        "order_id": order_id,
+        "order_id":
+            order_id,
 
-        "status": status,
+        "status":
+            status,
 
         "message":
-            f"Your order #{order_id} is now {status}."
+            f"Your order #{order_id} "
+            f"is now {status}."
 
     }
 
@@ -440,14 +482,18 @@ async def send_order_cancelled(
 
     message = {
 
-        "event": "order_cancelled",
+        "event":
+            "order_cancelled",
 
-        "order_id": order_id,
+        "order_id":
+            order_id,
 
-        "status": "Cancelled",
+        "status":
+            "Cancelled",
 
         "message":
-            f"Your order #{order_id} has been cancelled."
+            f"Your order #{order_id} "
+            f"has been cancelled."
 
     }
 
@@ -474,15 +520,20 @@ async def send_cart_update(
 
     message = {
 
-        "event": "cart_updated",
+        "event":
+            "cart_updated",
 
-        "cart_id": cart_id,
+        "cart_id":
+            cart_id,
 
-        "product_id": product_id,
+        "product_id":
+            product_id,
 
-        "quantity": quantity,
+        "quantity":
+            quantity,
 
-        "action": action,
+        "action":
+            action,
 
         "message":
             f"Your cart was {action}."
@@ -518,13 +569,17 @@ async def send_cart_removed(
 
     message = {
 
-        "event": "cart_item_removed",
+        "event":
+            "cart_item_removed",
 
-        "cart_id": cart_id,
+        "cart_id":
+            cart_id,
 
-        "product_id": product_id,
+        "product_id":
+            product_id,
 
-        "action": "removed",
+        "action":
+            "removed",
 
         "message":
             "Product was removed from your cart."
@@ -553,13 +608,17 @@ async def send_notification(
 
     notification_message = {
 
-        "event": "notification",
+        "event":
+            "notification",
 
-        "notification_id": notification_id,
+        "notification_id":
+            notification_id,
 
-        "type": notification_type,
+        "type":
+            notification_type,
 
-        "message": message
+        "message":
+            message
 
     }
 
@@ -585,19 +644,27 @@ async def send_notification(
 async def send_return_update(
     user_id: int,
     order_id: int,
-    status: str
+    status: str,
+    return_id: int | None = None
 ):
 
     message = {
 
-        "event": "return_updated",
+        "event":
+            "return_updated",
 
-        "order_id": order_id,
+        "return_id":
+            return_id,
 
-        "status": status,
+        "order_id":
+            order_id,
+
+        "status":
+            status,
 
         "message":
-            f"Your return request for order #{order_id} is {status}."
+            f"Your return request for "
+            f"order #{order_id} is {status}."
 
     }
 
@@ -607,7 +674,155 @@ async def send_return_update(
     print(
         f"User={user_id}, "
         f"Order={order_id}, "
+        f"Return ID={return_id}, "
         f"Return Status={status}"
+    )
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
+
+
+# =========================================================
+# RETURN APPROVED
+# =========================================================
+
+async def send_return_approved(
+    user_id: int,
+    order_id: int,
+    return_id: int | None = None
+):
+
+    message = {
+
+        "event":
+            "return_approved",
+
+        "return_id":
+            return_id,
+
+        "order_id":
+            order_id,
+
+        "status":
+            "approved",
+
+        "message":
+            f"Your return request for "
+            f"order #{order_id} has been approved."
+
+    }
+
+    print()
+    print("SENDING RETURN APPROVED UPDATE")
+
+    print(
+        f"User={user_id}, "
+        f"Order={order_id}, "
+        f"Return ID={return_id}"
+    )
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
+
+
+# =========================================================
+# RETURN REJECTED
+# =========================================================
+
+async def send_return_rejected(
+    user_id: int,
+    order_id: int,
+    return_id: int | None = None,
+    reason: str | None = None
+):
+
+    message = {
+
+        "event":
+            "return_rejected",
+
+        "return_id":
+            return_id,
+
+        "order_id":
+            order_id,
+
+        "status":
+            "rejected",
+
+        "reason":
+            reason,
+
+        "message":
+            f"Your return request for "
+            f"order #{order_id} has been rejected."
+
+    }
+
+    print()
+    print("SENDING RETURN REJECTED UPDATE")
+
+    print(
+        f"User={user_id}, "
+        f"Order={order_id}, "
+        f"Return ID={return_id}, "
+        f"Reason={reason}"
+    )
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
+
+
+# =========================================================
+# REFUND COMPLETED
+# =========================================================
+
+async def send_refund_completed(
+    user_id: int,
+    order_id: int,
+    refund_amount: float | None = None,
+    refund_id: str | None = None
+):
+
+    message = {
+
+        "event":
+            "refund_completed",
+
+        "order_id":
+            order_id,
+
+        "payment_status":
+            "Refunded",
+
+        "refund_amount":
+            refund_amount,
+
+        "refund_id":
+            refund_id,
+
+        "message":
+            (
+                f"Refund for order #{order_id} "
+                f"has been completed."
+            )
+
+    }
+
+    print()
+    print("SENDING REFUND COMPLETED UPDATE")
+
+    print(
+        f"User={user_id}, "
+        f"Order={order_id}, "
+        f"Refund Amount={refund_amount}, "
+        f"Refund ID={refund_id}"
     )
 
     return await manager.send_to_user(
@@ -628,19 +843,183 @@ async def send_payment_update(
 
     message = {
 
-        "event": "payment_updated",
+        "event":
+            "payment_updated",
 
-        "order_id": order_id,
+        "order_id":
+            order_id,
 
-        "payment_status": payment_status,
+        "payment_status":
+            payment_status,
 
         "message":
-            f"Payment for order #{order_id} is {payment_status}."
+            f"Payment for order #{order_id} "
+            f"is {payment_status}."
 
     }
 
     print()
     print("SENDING PAYMENT UPDATE")
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
+
+
+# =========================================================
+# PAYMENT REFUNDED
+# =========================================================
+
+async def send_payment_refunded(
+    user_id: int,
+    order_id: int,
+    refund_amount: float | None = None,
+    refund_id: str | None = None
+):
+
+    message = {
+
+        "event":
+            "payment_refunded",
+
+        "order_id":
+            order_id,
+
+        "payment_status":
+            "Refunded",
+
+        "refund_amount":
+            refund_amount,
+
+        "refund_id":
+            refund_id,
+
+        "message":
+            (
+                f"Payment refund for order "
+                f"#{order_id} has been completed."
+            )
+
+    }
+
+    print()
+    print("SENDING PAYMENT REFUNDED UPDATE")
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
+
+
+# =========================================================
+# INVENTORY UPDATE
+# =========================================================
+
+async def send_inventory_update(
+    user_id: int,
+    product_id: int,
+    stock: int,
+    quantity_added: int | None = None
+):
+
+    message = {
+
+        "event":
+            "inventory_updated",
+
+        "product_id":
+            product_id,
+
+        "stock":
+            stock,
+
+        "quantity_added":
+            quantity_added,
+
+        "message":
+            (
+                f"Inventory updated for "
+                f"product #{product_id}."
+            )
+
+    }
+
+    print()
+    print("SENDING INVENTORY UPDATE")
+
+    print(
+        f"User={user_id}, "
+        f"Product={product_id}, "
+        f"Stock={stock}, "
+        f"Quantity Added={quantity_added}"
+    )
+
+    return await manager.send_to_user(
+        user_id,
+        message
+    )
+
+
+# =========================================================
+# RETURN + REFUND COMPLETED
+# =========================================================
+
+async def send_return_refund_completed(
+    user_id: int,
+    order_id: int,
+    return_id: int | None = None,
+    refund_amount: float | None = None,
+    refund_id: str | None = None
+):
+
+    message = {
+
+        "event":
+            "return_refund_completed",
+
+        "return_id":
+            return_id,
+
+        "order_id":
+            order_id,
+
+        "return_status":
+            "refunded",
+
+        "order_status":
+            "Returned",
+
+        "payment_status":
+            "Refunded",
+
+        "refund_amount":
+            refund_amount,
+
+        "refund_id":
+            refund_id,
+
+        "message":
+            (
+                f"Return and refund for order "
+                f"#{order_id} have been completed."
+            )
+
+    }
+
+    print()
+    print("=" * 70)
+    print("SENDING RETURN + REFUND COMPLETED UPDATE")
+    print(
+        f"User={user_id}, "
+        f"Order={order_id}, "
+        f"Return ID={return_id}"
+    )
+    print(
+        f"Refund Amount={refund_amount}, "
+        f"Refund ID={refund_id}"
+    )
+    print("=" * 70)
 
     return await manager.send_to_user(
         user_id,
@@ -661,11 +1040,14 @@ async def send_realtime_update(
 
     realtime_message = {
 
-        "event": event,
+        "event":
+            event,
 
-        "message": message,
+        "message":
+            message,
 
-        "data": data or {}
+        "data":
+            data or {}
 
     }
 

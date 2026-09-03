@@ -7,27 +7,14 @@ from app.database import SessionLocal
 from app.models import Cart, Product, Order, Payment
 from app.core.config import STRIPE_SECRET_KEY
 
-
-# =========================================================
-# STRIPE CONFIG
-# =========================================================
-
 stripe.api_key = STRIPE_SECRET_KEY
 
-
-# =========================================================
-# ROUTER
-# =========================================================
 
 router = APIRouter(
     prefix="/checkout",
     tags=["Checkout"]
 )
 
-
-# =========================================================
-# DATABASE SESSION
-# =========================================================
 
 def get_db():
     db = SessionLocal()
@@ -38,25 +25,19 @@ def get_db():
         db.close()
 
 
-# =========================================================
-# CHECKOUT
-# =========================================================
-
 @router.post("/")
 def checkout(
     user_id: int,
     db: Session = Depends(get_db)
 ):
 
-    # =====================================================
-    # 1. GET CART
-    # =====================================================
+    # =========================================================
+    # GET CART
+    # =========================================================
 
     cart_items = (
         db.query(Cart)
-        .filter(
-            Cart.user_id == user_id
-        )
+        .filter(Cart.user_id == user_id)
         .all()
     )
 
@@ -66,9 +47,10 @@ def checkout(
             detail="Cart is empty"
         )
 
-    # =====================================================
-    # 2. CALCULATE CART TOTAL
-    # =====================================================
+
+    # =========================================================
+    # CALCULATE CART TOTAL
+    # =========================================================
 
     cart_total = 0.0
 
@@ -76,52 +58,36 @@ def checkout(
 
         product = (
             db.query(Product)
-            .filter(
-                Product.id == item.product_id
-            )
+            .filter(Product.id == item.product_id)
             .first()
         )
 
         if not product:
             raise HTTPException(
                 status_code=404,
-                detail=(
-                    f"Product {item.product_id} "
-                    "not found"
-                )
+                detail=f"Product {item.product_id} not found"
             )
 
         if product.stock < item.quantity:
             raise HTTPException(
                 status_code=400,
-                detail=(
-                    f"Insufficient stock for "
-                    f"{product.name}"
-                )
+                detail=f"Insufficient stock for {product.name}"
             )
 
-        cart_total += (
-            float(product.price)
-            * item.quantity
-        )
+        cart_total += float(product.price) * item.quantity
 
-    # =====================================================
-    # 3. TAX
-    # =====================================================
 
-    tax = round(
-        cart_total * 0.18,
-        2
-    )
+    # =========================================================
+    # TAX
+    # =========================================================
 
-    # =====================================================
-    # 4. GRAND TOTAL
-    # =====================================================
+    tax = round(cart_total * 0.18, 2)
 
     total_amount = round(
         cart_total + tax,
         2
     )
+
 
     print("----------------------------------------")
     print("CHECKOUT")
@@ -131,9 +97,10 @@ def checkout(
     print("Grand Total:", total_amount)
     print("----------------------------------------")
 
-    # =====================================================
-    # 5. CREATE ORDER
-    # =====================================================
+
+    # =========================================================
+    # CREATE ORDER
+    # =========================================================
 
     order = Order(
         user_id=user_id,
@@ -146,42 +113,41 @@ def checkout(
     db.commit()
     db.refresh(order)
 
-    print(
-        "ORDER CREATED:",
-        order.id
-    )
+    print("ORDER CREATED:", order.id)
 
-    # =====================================================
-    # 6. CREATE PAYMENT
-    # =====================================================
+
+    # =========================================================
+    # CREATE PAYMENT
+    # =========================================================
 
     payment = Payment(
         order_id=order.id,
         amount=total_amount,
         payment_method="stripe",
-        status="pending"
+        status="pending",
+        transaction_id=None
     )
 
     db.add(payment)
     db.commit()
     db.refresh(payment)
 
-    print(
-        "PAYMENT CREATED:",
-        payment.id
-    )
+    print("PAYMENT CREATED:", payment.id)
 
-    # =====================================================
-    # 7. CONVERT INR TO PAISE
-    # =====================================================
+
+    # =========================================================
+    # STRIPE AMOUNT
+    # INR -> PAISE
+    # =========================================================
 
     stripe_amount = int(
         round(total_amount * 100)
     )
 
-    # =====================================================
-    # 8. CREATE STRIPE CHECKOUT SESSION
-    # =====================================================
+
+    # =========================================================
+    # CREATE STRIPE CHECKOUT SESSION
+    # =========================================================
 
     try:
 
@@ -192,10 +158,11 @@ def checkout(
             line_items=[
                 {
                     "price_data": {
-
                         "currency": "inr",
 
-                        "product_data": {"name": (f"Order #{order.id}") },
+                        "product_data": {
+                            "name": f"Order #{order.id}"
+                        },
 
                         "unit_amount": stripe_amount
                     },
@@ -210,10 +177,14 @@ def checkout(
                 "user_id": str(user_id)
             },
 
+            # IMPORTANT:
+            # order_id is added here so PaymentSuccess.jsx
+            # can check this exact order.
             success_url=(
                 "http://localhost:5173/"
                 "payment-success"
                 "?session_id={CHECKOUT_SESSION_ID}"
+                f"&order_id={order.id}"
             ),
 
             cancel_url=(
@@ -221,6 +192,7 @@ def checkout(
                 "payment-cancelled"
             )
         )
+
 
     except stripe.StripeError as e:
 
@@ -238,25 +210,24 @@ def checkout(
             detail=f"Stripe error: {str(e)}"
         )
 
-    # =====================================================
-    # 9. SAVE STRIPE SESSION ID
-    # =====================================================
 
-    payment.transaction_id = session.id
-
-    db.commit()
-    db.refresh(payment)
+    # =========================================================
+    # RESPONSE
+    # =========================================================
 
     print(
-        "STRIPE SESSION:",
+        "STRIPE CHECKOUT SESSION:",
         session.id
     )
 
-    # =====================================================
-    # 10. RETURN CHECKOUT INFORMATION
-    # =====================================================
+    print(
+        "STRIPE PAYMENT INTENT:",
+        session.payment_intent
+    )
+
 
     return {
+
         "message": "Checkout created successfully",
 
         "order_id": order.id,
